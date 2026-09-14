@@ -1,0 +1,36 @@
+task: TASK-ID
+title: ""
+phase: test | implementation | review | integration | final-review
+status: planned | ready | test-frozen | coding | review | done | blocked
+
+product_contract:
+  path: ""
+  revision: ""
+
+technical_contract:
+  path: ""
+  section: ""
+  revision: ""
+
+test_contract:
+  revision: ""
+  paths: []
+
+depends_on: []
+
+read_scope: []
+write_scope: []
+forbidden_scope: []
+
+validation: []
+
+stop_conditions:
+  - frozen artifact conflicts with another authoritative artifact
+  - required external module contract must change
+  - required dependency is incomplete
+
+handoff:
+  on_success: ""
+  on_freeze_break: owning-stage
+
+notes: []

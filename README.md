@@ -30,7 +30,7 @@ The system is split into three planes:
 
 - **Truth Plane** — code, PRD, technical design, tests, standards, task contracts, Git revisions.
 - **Control Plane** — task graph, freeze gates, task packets, prompt generation, permissions, orchestration.
-- **Execution Plane** — test agents, coding agents, module reviewers, integration agents, final reviewers.
+- **Execution Plane** — product/design agents, test agents, coding agents, module reviewers, integration agents, final reviewers.
 
 See [`docs/architecture/system-model.md`](docs/architecture/system-model.md).
 
@@ -44,6 +44,7 @@ The v0.1 lifecycle is:
 4. Execute **vertical module loops**: Test → Coding → Module CR.
 5. Integrate completed modules through a top-level coding/integration agent.
 6. Run a **Final CR** against the complete PRD, technical design, tests, and integrated code.
+7. Perform focused human E2E/acceptance where product judgment is required.
 
 See [`docs/workflow/development-lifecycle.md`](docs/workflow/development-lifecycle.md).
 
@@ -56,6 +57,7 @@ See [`docs/workflow/development-lifecycle.md`](docs/workflow/development-lifecyc
 - If a downstream agent believes a frozen artifact is wrong, it must stop and raise a **Freeze Break Request** instead of silently editing it.
 - Agents should receive the smallest sufficient task context and write scope.
 - Sub-agents do not negotiate product truth with each other; they read versioned artifacts and report structured status to the orchestrator.
+- Scope discovered during one module should not be silently absorbed into that module unless it blocks correctness.
 
 ## Repository layout
 
@@ -65,6 +67,7 @@ docs/
   workflow/           Lifecycle and freeze/gate rules
   prompts/            Prompt-generation model
   task-packets/       Structured handoff contract
+  decisions/          Architectural decisions and rationale
   roadmap.md          Planned evolution
 
 templates/
@@ -73,11 +76,27 @@ templates/
   task-packet.yaml
 
 prompts/
+  prd.md
+  technical-design.md
   test.md
   coding.md
   review.md
+  orchestrator.md
+  integration.md
+  final-review.md
 ```
+
+## Start here
+
+- [`docs/architecture/system-model.md`](docs/architecture/system-model.md) — what is truth, control, and execution.
+- [`docs/workflow/development-lifecycle.md`](docs/workflow/development-lifecycle.md) — end-to-end development flow.
+- [`docs/workflow/freeze-gates.md`](docs/workflow/freeze-gates.md) — what freezes mean and how to break them safely.
+- [`docs/task-packets/task-packet.md`](docs/task-packets/task-packet.md) — structured agent handoff contract.
+- [`docs/prompts/prompt-generation.md`](docs/prompts/prompt-generation.md) — how phase-specific prompts should be generated.
+- [`docs/decisions/0001-repository-truth-and-compiled-execution.md`](docs/decisions/0001-repository-truth-and-compiled-execution.md) — why the project is structured this way.
 
 ## Status
 
-**v0.1 baseline** — methodology and execution contracts are initialized. The next step is to validate the workflow on a real project, then evolve prompt generation and freeze enforcement from conventions into executable tooling.
+**v0.1 baseline** — methodology, templates, role prompts, freeze semantics, and task-packet contracts are initialized.
+
+The next step is not to build a large orchestration platform. It is to validate the workflow on real projects, collect failure evidence, and then automate only the controls that prove useful: prompt compilation, write-scope enforcement, freeze-diff checks, task scheduling, and review dispatch.
