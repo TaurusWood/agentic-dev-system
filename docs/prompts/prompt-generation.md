@@ -4,132 +4,176 @@
 
 Prompts are execution interfaces, not sources of truth.
 
-A stage prompt should be composed from the current repository state, the active task/module, the stage Role Contract, and any frozen revisions that matter to that stage.
+This project uses **Prompt Generation** to mean a repeatable composition practice, not necessarily software automation:
 
-Do not restate the whole PRD or Technical Design inside every prompt. Duplication creates a second truth surface that can drift.
+```text
+current intent
++ selected stage template
++ repository truth
++ current task/freeze context
+        ↓
+execution-ready prompt
+```
+
+A human may perform this manually, an agent may compose it through [`../../prompts/prompt-generator.md`](../../prompts/prompt-generator.md), and tooling may automate parts of it later. The semantics are the same.
+
+Do not restate the whole PRD or Technical Design inside every prompt. Duplication creates another truth surface that can drift.
 
 ## 2. Role Contract, not role-play
 
-Each stage should have a stable **Role Contract**. Its purpose is to constrain authority, not to simulate seniority or persona.
+Each stage has a stable **Role Contract** whose purpose is to constrain authority, not simulate seniority or persona.
 
-A Role Contract defines:
+It defines:
 
 - responsibility — what outcome this stage owns;
-- authority — what this stage may decide or change;
-- upstream constraints — what must be treated as read-only truth;
-- forbidden actions — what this stage must not do;
-- stop conditions — when it must stop instead of guessing;
-- escalation path — Freeze Break / dependency / ambiguity handling;
-- completion evidence — what proves the stage is done.
+- authority — what it may decide/change;
+- upstream constraints — what is read-only truth;
+- forbidden actions;
+- stop conditions;
+- escalation path;
+- completion evidence.
 
 Avoid low-signal role-play such as “you are a world-class engineer with 20 years of experience.”
 
-## 3. Two-layer prompt model
+## 3. Two layers
 
 ### Stable stage template
 
-Defines cross-project execution rules:
+Versioned under `prompts/` and refined through real use. It contains:
 
-- Role Contract
-- required reading order
-- write permissions
-- forbidden actions
-- validation expectations
-- stop/escalation behavior
-- output contract
+- Role Contract;
+- required reading behavior;
+- write/forbidden scope rules;
+- validation expectations;
+- stop/escalation behavior;
+- output contract.
 
 Examples: PRD, Technical Design, Test, Coding, Module Review, Integration, Final Review.
 
-### Dynamic task payload
+### Task-specific composition
 
-Provides concrete context for one execution:
+Adds only what changes for the current project/task:
 
-- repository / branch
-- task or module ID
-- active stage
-- authoritative artifact paths and revisions
-- dependencies
-- allowed write scope
-- forbidden scope
-- required validation commands
-- known RED/GREEN state
-- requested output projection
+- repository / branch / baseline;
+- task or module ID;
+- user's current intent;
+- authoritative artifact paths and freeze revisions;
+- dependencies;
+- allowed/forbidden scope;
+- validation commands;
+- known RED/GREEN state;
+- requested output profile.
 
-A human can assemble this payload manually. Future tooling may generate it automatically.
+The result is a **task-specific Prompt**, not a new specification.
 
-## 4. Current operating mode
+## 4. Discussion vs standardized execution
 
-The current methodology does **not** require a prompt compiler.
+Not every stage should be forced into rigid prompt-shaped interaction.
+
+Use natural-language **Discussion** when uncertainty is still being removed, especially for:
+
+- PRD / product intent;
+- UX / UE / player journeys;
+- bug description, reproduction, and root-cause exploration;
+- technical/architecture trade-offs;
+- Freeze Break decisions.
+
+Once the intended outcome is stable, convert recurring execution work into standardized prompts, especially:
+
+- Test;
+- Coding;
+- Module CR;
+- Integration;
+- Final CR;
+- another high-frequency action with stable responsibility.
+
+Rule of thumb:
+
+> **Explore with Discussion; execute with standardized prompts.**
+
+The PRD and Technical Design stages may themselves use prompt templates, but the conversation inside them may remain exploratory until the artifact is ready to freeze.
+
+## 5. Current operating mode
+
+No prompt compiler is required.
 
 A valid workflow today is:
 
-1. open the relevant stage template;
-2. supply repository/task-specific values;
-3. start a new chat or sub-agent;
-4. let the agent inspect authoritative repository artifacts directly;
-5. return the result using the execution/output contract.
+1. discuss until the current intent is sufficiently stable;
+2. select the relevant base template under `prompts/`;
+3. combine it with current intent and project facts;
+4. optionally use `prompts/prompt-generator.md` to compose the final prompt;
+5. open a fresh chat/sub-agent with that prompt;
+6. let the execution agent inspect repository truth directly;
+7. return Human Brief + Agent Handoff as appropriate.
 
-This manual path is the baseline against which future automation should be judged.
+An agent that has just completed a stage may also propose the next-stage prompt when all required facts are already known. That is a convenience, not a transfer of authority.
 
-## 5. Optional future prompt compilation
+## 6. Prompt Generator vs future automation
 
-If repeated real-project use proves useful, tooling may later compose prompts from:
+The current **Prompt Generator** is primarily a method/meta-prompt for producing task-specific prompts from stable templates and project context.
+
+Future tooling may automate this composition, but automation is optional. The methodology should remain usable if the user simply copies the generated prompt into a new chat.
+
+Any future implementation might consume:
 
 ```text
 repository state
 + task packet
-+ stage Role Contract
-+ active freeze revisions
-      ↓
-prompt generation
-      ↓
++ selected stage template
++ freeze revisions
++ requested role/output
+        ↓
+prompt composition
+        ↓
 execution prompt
 ```
 
-The generated prompt remains ephemeral. The durable inputs are the repository artifacts, task metadata, and versioned stage templates.
+The generated prompt remains ephemeral. Durable truth stays in the repository.
 
-## 6. Input normalization / Transform
+## 7. Input normalization / Transform
 
-Natural-language requests often contain pronouns, omitted referents, relative phrases, and assumed context. A future optional **Transform / Normalize** step may convert this into a clearer task representation before the execution agent starts.
+A separate Transform layer is **not part of the required workflow today**.
 
-It is intentionally **not part of the required baseline today**.
+Good prompt composition already resolves much of the practical problem by forcing the current intent to be grounded against repository facts and explicit stage fields.
 
-If introduced later, it must obey these rules:
+If real usage later shows recurring ambiguity from pronouns, omitted referents, relative instructions, or multiple external entry points, a pre-execution Transform/Normalize step may be explored.
+
+If introduced, it must:
 
 - run before the main execution context is assembled;
-- resolve only what can be grounded in current conversation/repository evidence;
-- surface unresolved ambiguity instead of inventing product decisions;
+- normalize only what can be grounded in conversation/repository evidence;
+- surface unresolved ambiguity rather than invent decisions;
 - preserve explicit constraints and named entities;
-- avoid sending the transformer's internal reasoning into the execution context;
-- prefer passing only the normalized result plus necessary original evidence;
-- never become a new source of truth independent of approved repository artifacts.
+- avoid injecting its reasoning trace into the execution agent;
+- never become a second source of truth.
 
-The purpose is to improve intent fidelity, not to add another reasoning layer to every task.
+Treat Transform as a deferred option, not a baseline requirement.
 
-## 7. Required execution-prompt fields
+## 8. Required execution-prompt fields
 
-Every stage prompt should make these questions unambiguous:
+A high-quality execution prompt should make these unambiguous:
 
 1. **Role Contract** — what this stage owns and may change.
-2. **Goal** — the bounded outcome for this run.
-3. **Authority** — which artifacts are authoritative.
-4. **Read set** — what must be inspected before action.
+2. **Goal** — one bounded outcome.
+3. **Authority** — authoritative artifacts/revisions.
+4. **Read set** — what must be inspected first.
 5. **Write scope** — what may be modified.
 6. **Forbidden scope** — especially frozen upstream artifacts.
-7. **Dependencies** — prerequisites or known blockers.
-8. **Validation** — checks required before completion.
-9. **Stop conditions** — when the agent must not improvise.
-10. **Escalation** — Freeze Break / dependency / ambiguity protocol.
-11. **Output profile** — Human Brief, Human Discussion, Agent Handoff, or the required combination.
+7. **Dependencies** — prerequisites/blockers.
+8. **Validation** — proof required before completion.
+9. **Stop conditions** — when not to improvise.
+10. **Escalation** — Freeze Break / dependency / ambiguity handling.
+11. **Output profile** — Human Brief, Human Discussion, Agent Handoff, or a combination.
 12. **Done contract** — evidence that closes the task.
 
-## 8. Context minimization
+## 9. Context minimization
 
 Do not send every project document to every agent.
 
-Provide the smallest sufficient routing context and direct the agent to inspect first-hand repository sources.
+Provide the smallest routing context that tells the agent where authoritative facts live, then let it inspect those sources directly.
 
-Good handoff:
+Good:
 
 ```text
 Task: BUILD-04
@@ -142,18 +186,34 @@ Validation: ./scripts/run_tests.mjs build_planning
 Output: human_brief + agent_handoff
 ```
 
-Bad handoff:
+Bad:
 
 > Here is a long summary of what the previous agent thinks all those files mean...
 
-## 9. Prompt quality criterion
+## 10. Lightweight template learning
 
-A high-quality prompt is not the longest prompt. It should make these questions clear without requiring the agent to guess:
+Stage templates are expected to improve through use.
+
+Do not rewrite them after every task. When a real workflow failure is repeated or high-impact, use the lightweight learning loop in [`../workflow/learning-loop.md`](../workflow/learning-loop.md) to decide whether the base template should change.
+
+Examples:
+
+- agents repeatedly miss the same required input;
+- coding agents overreach because authority is unclear;
+- Test prompts overfit to implementation;
+- humans consistently receive too much detail;
+- handoffs lack information required by fresh agents.
+
+The objective is a small set of increasingly reliable templates, not an ever-growing rulebook.
+
+## 11. Prompt quality criterion
+
+A high-quality prompt is not the longest prompt. A fresh agent should be able to answer without guessing:
 
 - What am I trying to change?
 - What am I not allowed to reinterpret?
-- Where do I get authoritative facts?
-- What files may I touch?
+- Where do authoritative facts live?
+- What may I modify?
 - How do I prove completion?
-- When must I stop instead of guessing?
-- Who is consuming my output?
+- When must I stop?
+- Who consumes my output?

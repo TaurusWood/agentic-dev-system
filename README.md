@@ -6,6 +6,13 @@ This repository defines a methodology for agentic software engineering. It treat
 
 The current objective is deliberately small: **make the workflow explicit, runnable, and testable on real projects before building orchestration infrastructure.** A human may manually open separate chats, or an agent runtime may delegate to sub-agents; both should follow the same repository contracts.
 
+## Usage guides
+
+- [使用手册（中文）](docs/guides/usage.zh-CN.md)
+- [Usage Guide (English)](docs/guides/usage.en.md)
+
+If you want to apply the method to a real project, start with the usage guide rather than reading every protocol document first.
+
 ## Core lifecycle
 
 ```text
@@ -49,6 +56,27 @@ A capable runtime may use sub-agents/threads to execute the same stages and modu
 
 The number of chats is therefore an implementation detail. The durable design is the artifact flow, role boundary, freeze boundary, and handoff contract.
 
+## Prompt generation
+
+Prompt Generation is currently a **composition practice**, not an automation requirement.
+
+```text
+current intent
++ stage base template
++ project repository truth
++ task / freeze context
+        ↓
+high-quality execution prompt
+```
+
+Use [`prompts/prompt-generator.md`](prompts/prompt-generator.md) as a meta-prompt when you want an agent to compose the next task prompt.
+
+Open-ended natural language remains appropriate for uncertain work such as PRD, UX/UE, bug understanding, and architecture discussion. Once the target is stable, repeated execution work should increasingly use standardized prompts for Test, Coding, CR, Integration, Final CR, and other stable high-frequency stages.
+
+Rule of thumb:
+
+> **Explore with Discussion; execute with standardized prompts.**
+
 ## Role and output contracts
 
 Each stage has a **Role Contract**: responsibility, authority, forbidden actions, stop conditions, and completion evidence. Roles are not expertise role-play; they exist to constrain what an agent may decide or change.
@@ -88,18 +116,27 @@ They do **not** prescribe a universal directory structure or replace project-loc
 - Sub-agents do not negotiate project truth through free-form summaries; they read repository artifacts directly and return structured status.
 - Human attention is reserved for product intent, material trade-offs, freeze breaks, and final acceptance—not routine technical detail.
 
+## Lightweight learning loop
+
+The base prompts and protocols are expected to improve from real projects.
+
+Do not add rules after every one-off failure. Promote a lesson only when it repeats or has high impact, is reusable, and the correction is smaller than the problem it prevents.
+
+See [`docs/workflow/learning-loop.md`](docs/workflow/learning-loop.md).
+
 ## Repository layout
 
 ```text
 docs/
+  guides/             Bilingual usage guides
   architecture/       System model and boundaries
-  workflow/           Lifecycle and freeze/gate rules
+  workflow/           Lifecycle, freeze, and learning-loop rules
   standards/          Language-independent engineering baseline
   protocols/          Role/output execution contracts
   prompts/            Prompt-generation model
   task-packets/       Structured handoff contract
   decisions/          Architectural decisions and rationale
-  roadmap.md          Validation focus and deferred possibilities
+  roadmap.md          Validation focus and long-term direction
 
 templates/
   prd.md
@@ -107,6 +144,7 @@ templates/
   task-packet.yaml
 
 prompts/
+  prompt-generator.md
   prd.md
   technical-design.md
   test.md
@@ -119,18 +157,22 @@ prompts/
 
 ## Start here
 
-- [`docs/workflow/development-lifecycle.md`](docs/workflow/development-lifecycle.md) — current end-to-end workflow.
-- [`docs/protocols/execution-contract.md`](docs/protocols/execution-contract.md) — stage roles and human/agent output contract.
-- [`docs/workflow/freeze-gates.md`](docs/workflow/freeze-gates.md) — freeze semantics and safe freeze breaks.
-- [`docs/prompts/prompt-generation.md`](docs/prompts/prompt-generation.md) — how stage prompts are composed without becoming a second truth source.
-- [`docs/task-packets/task-packet.md`](docs/task-packets/task-packet.md) — structured task handoff.
-- [`docs/architecture/system-model.md`](docs/architecture/system-model.md) — truth, control, and execution boundaries.
-- [`docs/standards/README.md`](docs/standards/README.md) — engineering baseline.
+1. [`docs/guides/usage.zh-CN.md`](docs/guides/usage.zh-CN.md) / [`docs/guides/usage.en.md`](docs/guides/usage.en.md) — practical usage.
+2. [`docs/workflow/development-lifecycle.md`](docs/workflow/development-lifecycle.md) — current end-to-end workflow.
+3. [`docs/protocols/execution-contract.md`](docs/protocols/execution-contract.md) — stage roles and human/agent output contract.
+4. [`docs/workflow/freeze-gates.md`](docs/workflow/freeze-gates.md) — freeze semantics and safe freeze breaks.
+5. [`docs/prompts/prompt-generation.md`](docs/prompts/prompt-generation.md) — how task prompts are composed.
+6. [`docs/workflow/learning-loop.md`](docs/workflow/learning-loop.md) — how the methodology learns without becoming heavy.
+7. [`docs/task-packets/task-packet.md`](docs/task-packets/task-packet.md) — structured task handoff.
+8. [`docs/architecture/system-model.md`](docs/architecture/system-model.md) — truth, control, and execution boundaries.
+9. [`docs/standards/README.md`](docs/standards/README.md) — engineering baseline.
 
-## Current focus
+## Current focus and long-term direction
 
-The project is in **methodology validation**, not platform construction.
+The project is currently in **methodology validation**, not platform construction.
 
 The immediate next step is to run this protocol on real development work, observe where agents still drift or humans still receive too much information, and refine the documents/prompts from evidence.
 
-Future automation—potentially implemented here, or integrated with systems such as GitHub Spec Kit—remains intentionally unfrozen. See [`docs/roadmap.md`](docs/roadmap.md).
+A **multi-agent development system remains a long-term target**. If the method proves stable, this protocol can later act as the contract layer for richer orchestration—implemented here or integrated with systems such as GitHub Spec Kit or future coding-agent runtimes.
+
+Deferred implementation mechanisms such as a DAG engine, CLI, queue, scheduler, automatic worktrees, agent RPC, persistent orchestration state, and automatic dispatch are intentionally not current requirements. See [`docs/roadmap.md`](docs/roadmap.md).
