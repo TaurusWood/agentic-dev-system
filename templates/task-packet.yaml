@@ -16,6 +16,9 @@ test_contract:
   revision: ""
   paths: []
 
+applicable_standards: []
+approved_exceptions: []
+
 depends_on: []
 
 read_scope: []
@@ -28,6 +31,7 @@ stop_conditions:
   - frozen artifact conflicts with another authoritative artifact
   - required external module contract must change
   - required dependency is incomplete
+  - applicable standards conflict without an approved exception
 
 handoff:
   on_success: ""

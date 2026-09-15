@@ -28,6 +28,13 @@ test_contract:
   paths:
     - tests/smoke/build_planning_smoke.gd
 
+applicable_standards:
+  - docs/standards/engineering-principles.md
+  - docs/standards/module-design.md
+  - project:AGENTS.md
+
+approved_exceptions: []
+
 depends_on:
   - BUILD-02
 
@@ -46,6 +53,7 @@ stop_conditions:
   - frozen test contradicts product contract
   - external module contract must change
   - required dependency is not complete
+  - applicable standards conflict without an approved exception
 
 handoff:
   on_success: module-review
@@ -55,7 +63,13 @@ handoff:
 ## 3. Design rules
 
 ### Reference, do not duplicate
-The packet points to authoritative artifacts and revisions. It should not paste entire PRDs or designs.
+The packet points to authoritative artifacts and revisions. It should not paste entire PRDs, designs, or standards.
+
+### Declare applicable standards
+The packet should identify the smallest relevant set of universal and project-local standards needed for the task. Do not require every execution agent to read every standard when the task does not touch that concern.
+
+### Declare exceptions explicitly
+If the frozen technical design intentionally deviates from an applicable standard, reference the approved exception. Task packets do not create exceptions by themselves.
 
 ### Declare permissions
 Write scope is part of task correctness, not a convenience hint.
@@ -98,6 +112,7 @@ The task packet is intended to become machine-readable input to:
 
 - prompt generation
 - worktree/branch creation
+- standards selection
 - write-scope enforcement
 - dependency scheduling
 - validation execution
