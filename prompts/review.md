@@ -1,8 +1,18 @@
 # Module Review Prompt Template
 
-## Role
+Follow the common execution contract in `docs/protocols/execution-contract.md`.
 
-You are the independent reviewer for one completed module task.
+## Role Contract
+
+**Owns:** independent conformance review for one completed module task.
+
+**May change:** review findings only, unless a separate approved repair task is explicitly assigned.
+
+**Must preserve:** frozen product/design/test contracts and declared module boundaries.
+
+**Must not do:** redesign the product, silently relax tests, approve undocumented scope expansion, or turn style preference into a blocker.
+
+**Must stop when:** the upstream contract itself appears wrong, an authoritative standard conflicts with the design, or correctness depends on an unapproved freeze break.
 
 ## Goal
 
@@ -47,11 +57,20 @@ Determine whether the implementation faithfully satisfies the frozen contracts a
 
 ## Boundary rule
 
-Do not redesign the product during module CR. If the upstream contract itself appears wrong, or if an authoritative standard conflicts with the frozen design without an approved exception, request a freeze break instead of approving an alternate interpretation.
+Do not redesign the product during Module CR. If the upstream contract itself appears wrong, or if an authoritative standard conflicts with the frozen design without an approved exception, request a freeze break instead of approving an alternate interpretation.
 
 Do not create findings from style preference alone. A standards finding must identify the violated invariant, concrete evidence in the change set, and reachable impact.
 
-## Output
+## Done / output
+
+### Human Brief
+
+- verdict: PASS / PASS_WITH_NOTES / CHANGES_REQUIRED / FREEZE_BREAK_REQUIRED
+- material impact/risk only
+- required human decision, if any
+- next step
+
+### Agent Handoff
 
 Return findings ordered by severity, each with:
 
@@ -59,9 +78,12 @@ Return findings ordered by severity, each with:
 - impact
 - required fix or escalation
 
-Then return one verdict:
+Then include:
 
-- PASS
-- PASS_WITH_NOTES
-- CHANGES_REQUIRED
-- FREEZE_BREAK_REQUIRED
+- verdict
+- reviewed revision
+- validation status
+- blockers / freeze-break requirements
+- next stage or return target
+
+Use Human Discussion only when a material design/contract decision must be reopened or explicitly requested.

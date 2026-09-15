@@ -4,87 +4,130 @@
 
 Prompts are execution interfaces, not sources of truth.
 
-A prompt should be generated from the current repository state, the task packet, the active development stage, and stable role rules.
+A stage prompt should be composed from the current repository state, the active task/module, the stage Role Contract, and any frozen revisions that matter to that stage.
 
-Do not manually restate the whole PRD or Technical Design inside every prompt. Duplication creates a second truth surface that can drift.
+Do not restate the whole PRD or Technical Design inside every prompt. Duplication creates a second truth surface that can drift.
 
-## 2. Two-layer prompt model
+## 2. Role Contract, not role-play
 
-### Stable role template
-Defines behavior that should remain consistent across projects:
+Each stage should have a stable **Role Contract**. Its purpose is to constrain authority, not to simulate seniority or persona.
 
-- role
-- authority
+A Role Contract defines:
+
+- responsibility — what outcome this stage owns;
+- authority — what this stage may decide or change;
+- upstream constraints — what must be treated as read-only truth;
+- forbidden actions — what this stage must not do;
+- stop conditions — when it must stop instead of guessing;
+- escalation path — Freeze Break / dependency / ambiguity handling;
+- completion evidence — what proves the stage is done.
+
+Avoid low-signal role-play such as “you are a world-class engineer with 20 years of experience.”
+
+## 3. Two-layer prompt model
+
+### Stable stage template
+
+Defines cross-project execution rules:
+
+- Role Contract
 - required reading order
 - write permissions
 - forbidden actions
 - validation expectations
-- stop conditions
-- escalation protocol
-- completion report format
+- stop/escalation behavior
+- output contract
 
-Examples: Test Agent, Coding Agent, Module Reviewer, Integration Agent, Final Reviewer.
+Examples: PRD, Technical Design, Test, Coding, Module Review, Integration, Final Review.
 
 ### Dynamic task payload
-Generated for one concrete task:
 
-- repository and branch
-- task ID
-- current phase
+Provides concrete context for one execution:
+
+- repository / branch
+- task or module ID
+- active stage
 - authoritative artifact paths and revisions
-- module dependencies
+- dependencies
 - allowed write scope
 - forbidden scope
 - required validation commands
 - known RED/GREEN state
-- expected output
+- requested output projection
 
-## 3. Prompt compiler concept
+A human can assemble this payload manually. Future tooling may generate it automatically.
 
-Future tooling should support a flow like:
+## 4. Current operating mode
+
+The current methodology does **not** require a prompt compiler.
+
+A valid workflow today is:
+
+1. open the relevant stage template;
+2. supply repository/task-specific values;
+3. start a new chat or sub-agent;
+4. let the agent inspect authoritative repository artifacts directly;
+5. return the result using the execution/output contract.
+
+This manual path is the baseline against which future automation should be judged.
+
+## 5. Optional future prompt compilation
+
+If repeated real-project use proves useful, tooling may later compose prompts from:
 
 ```text
 repository state
 + task packet
-+ phase
-+ role template
++ stage Role Contract
++ active freeze revisions
       ↓
-prompt compiler
+prompt generation
       ↓
 execution prompt
 ```
 
-Potential interface:
+The generated prompt remains ephemeral. The durable inputs are the repository artifacts, task metadata, and versioned stage templates.
 
-```text
-generate-prompt BUILD-04 --phase test
-generate-prompt BUILD-04 --phase implementation
-generate-prompt BUILD-04 --phase review
-```
+## 6. Input normalization / Transform
 
-The generated prompt is an execution artifact. The durable inputs are the versioned templates, task metadata, and repository artifacts.
+Natural-language requests often contain pronouns, omitted referents, relative phrases, and assumed context. A future optional **Transform / Normalize** step may convert this into a clearer task representation before the execution agent starts.
 
-## 4. Required prompt sections
+It is intentionally **not part of the required baseline today**.
 
-Every execution prompt should contain, explicitly or by generated reference:
+If introduced later, it must obey these rules:
 
-1. **Role** — what this agent is responsible for.
-2. **Goal** — the single bounded outcome for this run.
+- run before the main execution context is assembled;
+- resolve only what can be grounded in current conversation/repository evidence;
+- surface unresolved ambiguity instead of inventing product decisions;
+- preserve explicit constraints and named entities;
+- avoid sending the transformer's internal reasoning into the execution context;
+- prefer passing only the normalized result plus necessary original evidence;
+- never become a new source of truth independent of approved repository artifacts.
+
+The purpose is to improve intent fidelity, not to add another reasoning layer to every task.
+
+## 7. Required execution-prompt fields
+
+Every stage prompt should make these questions unambiguous:
+
+1. **Role Contract** — what this stage owns and may change.
+2. **Goal** — the bounded outcome for this run.
 3. **Authority** — which artifacts are authoritative.
-4. **Read set** — files/revisions that must be inspected before action.
-5. **Write scope** — files/directories the agent may modify.
+4. **Read set** — what must be inspected before action.
+5. **Write scope** — what may be modified.
 6. **Forbidden scope** — especially frozen upstream artifacts.
-7. **Dependencies** — prerequisite tasks/revisions.
-8. **Validation** — commands/checks required before completion.
+7. **Dependencies** — prerequisites or known blockers.
+8. **Validation** — checks required before completion.
 9. **Stop conditions** — when the agent must not improvise.
-10. **Escalation** — Freeze Break / dependency / ambiguity report format.
-11. **Done contract** — what evidence must be returned.
+10. **Escalation** — Freeze Break / dependency / ambiguity protocol.
+11. **Output profile** — Human Brief, Human Discussion, Agent Handoff, or the required combination.
+12. **Done contract** — evidence that closes the task.
 
-## 5. Context minimization
+## 8. Context minimization
 
 Do not send every project document to every agent.
 
-The prompt generator should provide the smallest sufficient context and direct the agent to inspect first-hand repository sources when needed.
+Provide the smallest sufficient routing context and direct the agent to inspect first-hand repository sources.
 
 Good handoff:
 
@@ -96,15 +139,16 @@ Tests: frozen @ ghi789
 Write scope: scenes/map/**, scenes/ui/coordinators/**
 Forbidden: docs/**, tests/**
 Validation: ./scripts/run_tests.mjs build_planning
+Output: human_brief + agent_handoff
 ```
 
 Bad handoff:
 
 > Here is a long summary of what the previous agent thinks all those files mean...
 
-## 6. Prompt quality criterion
+## 9. Prompt quality criterion
 
-A high-quality prompt is not the longest prompt. It should make these questions unambiguous:
+A high-quality prompt is not the longest prompt. It should make these questions clear without requiring the agent to guess:
 
 - What am I trying to change?
 - What am I not allowed to reinterpret?
@@ -112,3 +156,4 @@ A high-quality prompt is not the longest prompt. It should make these questions 
 - What files may I touch?
 - How do I prove completion?
 - When must I stop instead of guessing?
+- Who is consuming my output?

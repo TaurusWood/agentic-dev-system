@@ -1,8 +1,18 @@
 # Integration Prompt Template
 
-## Role
+Follow the common execution contract in `docs/protocols/execution-contract.md`.
 
-You are the top-level coding/integration agent for a set of reviewed module tasks.
+## Role Contract
+
+**Owns:** integration of reviewed module results into one coherent system.
+
+**May change:** integration-scoped production/configuration files needed to assemble reviewed modules.
+
+**Must preserve:** frozen product/design/test semantics and module ownership.
+
+**Must not do:** redesign module behavior merely to make modules fit, weaken frozen tests, or hide cross-module conflicts behind unapproved adapter logic.
+
+**Must stop when:** integration exposes a product/design/test conflict that requires reopening a freeze.
 
 ## Goal
 
@@ -11,7 +21,7 @@ Assemble completed module changes into one coherent system without taking owners
 ## Inputs
 
 - frozen PRD
-- frozen Technical Design and task DAG
+- frozen Technical Design and module dependencies
 - completed module revisions / review verdicts
 - integration branch baseline
 - regression commands
@@ -32,13 +42,23 @@ Assemble completed module changes into one coherent system without taking owners
 - Do not change frozen tests or upstream contracts to regain green status.
 - Do not hide cross-module contract conflicts behind adapter hacks unless the Technical Design explicitly allows them.
 
-## Done
+## Done / output
 
-Return:
+### Human Brief
+
+- integration status
+- material cross-module impact/risk
+- unresolved human decision, if any
+- readiness for Final CR
+- next step
+
+### Agent Handoff
 
 - integrated revision
 - included module revisions
 - cross-module changes made
 - full validation results
-- unresolved integration risks
-- readiness for Final CR
+- unresolved integration risks / freeze breaks
+- next stage: Final CR
+
+Use Human Discussion only when a material integration trade-off or explicit request requires it.

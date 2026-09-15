@@ -1,81 +1,77 @@
 # Roadmap
 
-## v0.1 — Methodology baseline
+This roadmap intentionally avoids freezing a detailed product/platform sequence before the methodology has been exercised on real projects.
 
-Goal: make the development system explicit before automating it.
+## Now — validate the protocol
 
-- [x] Repository-as-truth principle
-- [x] Truth / Control / Execution plane model
-- [x] PRD → Technical Design → Test → Coding → CR → Integration → Final CR lifecycle
-- [x] Vertical per-module Test / Coding / CR execution
-- [x] Product / Design / Test freeze semantics
-- [x] Freeze Break Request
-- [x] Task Packet contract
-- [x] Prompt-generation model
-- [x] Initial role prompt templates
+The current objective is to make the methodology runnable and collect evidence.
 
-## v0.2 — Validate on real projects
+Established baseline:
 
-Apply the workflow to real changes and collect evidence rather than extending the system spec theoretically.
+- repository-as-truth principle;
+- PRD → Technical Design → Test → Coding → CR → Integration → Final CR lifecycle;
+- Product / Design / Test freeze semantics;
+- vertical per-module Test / Coding / CR execution;
+- Freeze Break Request;
+- language-independent engineering standards;
+- task-packet / handoff contract;
+- stage Role Contract model;
+- Human Brief / Human Discussion / Agent Handoff output protocol;
+- stage prompt templates usable by manual chats or sub-agents.
 
-Target questions:
+Validation questions:
 
-- Does vertical slicing reduce requirement drift?
-- Which human gates are actually necessary?
-- How small can the approval surface be without losing correctness?
-- Which test edits after freeze are legitimate vs semantic drift?
-- What task-packet fields are missing in practice?
-- Which role prompts consistently fail or overreach?
-- What information is repeatedly re-read and should become structured context?
+- Does PRD + Technical Design separation reduce product/implementation drift?
+- Does vertical module slicing reduce context size and rework?
+- Does TEST FREEZE prevent implementation-driven test weakening without creating excessive friction?
+- Which freeze breaks are legitimate in real projects?
+- Are stage Role Contracts sufficient to prevent agents from overreaching?
+- Does Human Brief materially reduce cognitive load while preserving necessary decisions?
+- Are Agent Handoffs sufficient for a fresh chat/agent to continue without conversational history?
+- Which prompt fields repeatedly prove useful or unnecessary?
 
-Candidate validation projects:
+## Near-term — refine from evidence
 
-- interaction-heavy game changes
-- web application feature slices
-- refactor + regression work
+Only after real-project runs:
 
-## v0.3 — Prompt compiler prototype
+- simplify or strengthen stage prompts;
+- refine task packet fields;
+- refine freeze/gate rules;
+- improve project adoption guidance (`AGENTS.md`, standards mapping, document locations);
+- add lightweight examples/case studies;
+- record failure patterns and corrections.
 
-Build a small tool that generates phase-specific execution prompts from:
+The workflow should remain manually executable throughout this phase.
 
-- repository metadata
-- task packet
-- role template
-- freeze revisions
-- current task state
+## Deferred ideas — not scheduled commitments
 
-Initial commands may resemble:
+The following may become useful implementation mechanisms later, or may be delegated/integrated with external systems such as GitHub Spec Kit or future agent runtimes:
 
-```text
-ads prompt BUILD-04 --phase test
-ads prompt BUILD-04 --phase implementation
-ads prompt BUILD-04 --phase review
-```
+1. prompt generation/compiler tooling;
+2. DAG engine / dependency execution;
+3. CLI;
+4. queue;
+5. scheduler;
+6. automatic worktree/branch provisioning;
+7. agent RPC / cross-agent transport;
+8. persistent orchestration state database;
+9. automatic write-scope/freeze-diff enforcement;
+10. automatic review/integration dispatch.
 
-The exact CLI is intentionally not frozen in v0.1.
+These are **implementation options, not current methodology requirements**.
 
-## v0.4 — Mechanical gates
+If an existing ecosystem provides these capabilities well, prefer integration or adaptation over rebuilding them solely for this repository.
 
-Move critical workflow constraints out of prose and into executable checks:
+## Deferred research note — input Transform
 
-- frozen-path diff detection
-- allowed write-scope validation
-- required validation commands
-- dependency completion checks
-- task result schema validation
-- automatic Freeze Break routing
+Natural-language normalization/Transform may eventually improve intent fidelity, especially for pronouns, implicit referents, and relative instructions.
 
-## v0.5 — Orchestration
-
-Coordinate multiple isolated module tasks:
-
-- task DAG scheduling
-- worktree/branch provisioning
-- module execution dispatch
-- structured result collection
-- integration sequencing
-- final review dispatch
+It is not part of the required workflow today. If explored, it should remain a pre-execution normalization layer and must not become a second source of truth or inject its internal reasoning into every task context.
 
 ## Non-goal for now
 
-Do not prematurely build a large agent platform before the contracts have been validated by repeated real-project use. The first objective is reliable software delivery, not orchestration complexity.
+Do not build a multi-agent orchestration platform before the protocol itself has demonstrated value.
+
+Success in the current phase means:
+
+> the same documented method can be run reliably by a human using multiple chats or by an agent runtime using sub-agents, with repository artifacts carrying truth between stages.

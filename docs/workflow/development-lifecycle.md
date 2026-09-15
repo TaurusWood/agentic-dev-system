@@ -2,7 +2,9 @@
 
 ## 1. Goal
 
-Turn a product requirement into an integrated, reviewed change while minimizing cross-agent drift and preventing downstream agents from rewriting upstream intent.
+Turn a product requirement into an integrated, reviewed change while minimizing requirement drift, keeping module work bounded, and preventing downstream stages from silently rewriting upstream intent.
+
+The workflow must be runnable both manually and through sub-agent orchestration.
 
 ## 2. Canonical lifecycle
 
@@ -22,8 +24,10 @@ Integration / top-level coding
     ↓
 Final CR
     ↓
-Human E2E / acceptance where required
+Focused human E2E / acceptance where required
 ```
+
+Each stage is started by a stage-specific prompt with a bounded Role Contract. The prompt tells the agent how to consume repository truth; it does not replace that truth.
 
 ## 3. Stage 1 — PRD
 
@@ -56,11 +60,11 @@ Forbidden: no extra “plan from here” CTA
 Must preserve: station-management access
 ```
 
-The detailed PRD may be agent-generated, but the human should be able to approve the essential observable behavior without reading the entire implementation model.
+The detailed PRD may be agent-generated, but a human should be able to approve the essential observable behavior without reading the implementation model.
 
 ## 4. Stage 2 — Technical Design
 
-The technical-design stage maps the frozen PRD onto the real codebase.
+The Technical Design maps the frozen PRD onto the real codebase.
 
 It must inspect current code and define:
 
@@ -71,11 +75,11 @@ It must inspect current code and define:
 - integration points
 - compatibility constraints
 - migration or refactoring needs
-- task dependency graph
+- dependency relationships
 - agent-sized module slices
 - per-slice scope and out-of-scope boundaries
 
-A module slice should be independently understandable and independently reviewable.
+A module slice should be independently understandable, independently testable, and independently reviewable.
 
 If a module task discovers that it must change an external module contract, it should stop and escalate rather than silently widening scope.
 
@@ -101,7 +105,7 @@ After TEST FREEZE, downstream coding agents treat these tests as read-only.
 
 ## 6. Stage 4 — Vertical Module Execution
 
-Technical Design determines module/task groups. Each group can have its own isolated execution chain:
+Technical Design determines module/task groups. Each group can execute as an isolated chain:
 
 ```text
 Module A: Test → Coding → CR
@@ -109,7 +113,9 @@ Module B: Test → Coding → CR
 Module C: Test → Coding → CR
 ```
 
-Independent groups may execute in parallel. Dependent groups must follow the task DAG.
+A human may run those chats manually. A capable agent runtime may dispatch them as sub-agents. The contracts are identical in either mode.
+
+Independent groups may execute in parallel. Dependent groups execute in dependency order; no DAG engine is required to express or enforce this manually.
 
 The coding agent reads:
 
@@ -137,7 +143,7 @@ It checks:
 
 A module CR may report a product/design concern, but it must not redesign upstream requirements by itself.
 
-## 8. Stage 6 — Integration
+## 8. Stage 6 — Integration / top-level coding
 
 A top-level coding/integration agent owns cross-module assembly, shared infrastructure, merge sequencing, and regression resolution.
 
@@ -160,7 +166,18 @@ It checks:
 - full regression status
 - whether any frozen artifact was modified without an approved freeze break
 
-## 10. Scope discipline
+## 10. Human/agent output rule
+
+Each stage produces two logically distinct result surfaces when useful:
+
+- a **Human Brief** for decision/status consumption;
+- an **Agent Handoff** for the next execution stage.
+
+A **Human Discussion** is generated only when a material trade-off, unresolved ambiguity, freeze break, or explicit request requires deeper reasoning.
+
+The detailed technical handoff should not be forced into the human-facing summary. See [`../protocols/execution-contract.md`](../protocols/execution-contract.md).
+
+## 11. Scope discipline
 
 Do not batch unrelated findings merely because they are discovered together.
 
@@ -170,4 +187,4 @@ When a new issue is found during a module task:
 - otherwise record it in backlog;
 - do not expand the active slice silently.
 
-This is especially important for agentic workflows: large issue batches increase local reasoning quality but reduce global attention and make human review ineffective.
+This is especially important for agentic workflows: large issue batches increase total context and make human review less effective.

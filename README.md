@@ -1,42 +1,69 @@
 # Agentic Development System
 
-A contract-driven, multi-agent software development workflow.
+A contract-driven software-development protocol for human- and agent-operated workflows.
 
-This repository defines a development system for agentic software engineering. It treats the repository—not chat history—as the durable source of truth, and uses phase-specific prompts, frozen artifacts, task packets, engineering standards, and independent review to coordinate multiple coding agents safely.
+This repository defines a methodology for agentic software engineering. It treats repository artifacts—not chat history—as durable truth, and uses stage-specific prompts, role contracts, frozen artifacts, task packets, engineering standards, and independent review to reduce requirement drift.
 
-## Core idea
+The current objective is deliberately small: **make the workflow explicit, runnable, and testable on real projects before building orchestration infrastructure.** A human may manually open separate chats, or an agent runtime may delegate to sub-agents; both should follow the same repository contracts.
+
+## Core lifecycle
 
 ```text
-Repository truth
+Requirement input
     ↓
 PRD
-    ↓
+    ↓  PRODUCT FREEZE
 Technical Design + Module Task Slicing
-    ↓
-Test Contract / Test Freeze
-    ↓
+    ↓  DESIGN FREEZE
+Per-module Test Contract
+    ↓  TEST FREEZE
 Module: Test → Coding → CR
     ↓
-Integration
+Integration / top-level coding
     ↓
 Final CR
+    ↓
+Focused human acceptance where required
 ```
 
-Chats and agents are temporary execution environments. Durable decisions must be written back to versioned repository artifacts.
+Chats and agents are disposable execution environments. Durable decisions belong in versioned repository artifacts.
 
-## System model
+## What is authoritative
 
-The system is split into three planes:
+- **Current-state truth** — production code, configuration, schemas, tests, runtime evidence.
+- **Target-state truth** — approved PRD, Technical Design, module contracts, frozen tests.
+- **Prompts** — execution interfaces that tell an agent how to consume those truths; prompts are not a parallel source of truth.
+- **Chat history** — useful working context, but not an authoritative requirement unless written back to the repository.
 
-- **Truth Plane** — code, PRD, technical design, tests, standards, task contracts, Git revisions.
-- **Control Plane** — task graph, freeze gates, task packets, prompt generation, permissions, orchestration.
-- **Execution Plane** — product/design agents, test agents, coding agents, module reviewers, integration agents, final reviewers.
+## Execution model
 
-See [`docs/architecture/system-model.md`](docs/architecture/system-model.md).
+The same protocol can run in two modes:
+
+### Manual orchestration
+
+A human opens the PRD, design, test, coding, review, integration, and final-review chats as needed and starts each stage with the corresponding prompt.
+
+### Agent orchestration
+
+A capable runtime may use sub-agents/threads to execute the same stages and module slices. Automation is optional; it must not change the contracts.
+
+The number of chats is therefore an implementation detail. The durable design is the artifact flow, role boundary, freeze boundary, and handoff contract.
+
+## Role and output contracts
+
+Each stage has a **Role Contract**: responsibility, authority, forbidden actions, stop conditions, and completion evidence. Roles are not expertise role-play; they exist to constrain what an agent may decide or change.
+
+Execution output has three supported projections:
+
+- **Human Brief** — default concise result: conclusion, capability/boundary, impact/risk, decisions required, next step.
+- **Human Discussion** — expanded reasoning only when trade-offs or human judgment are materially required, or when explicitly requested.
+- **Agent Handoff** — structured task status, authoritative artifacts/revisions, scope, validation, blockers, and next stage.
+
+The protocol is defined in [`docs/protocols/execution-contract.md`](docs/protocols/execution-contract.md). Project-local `AGENTS.md` may refine it, while task prompts select the output needed for the current run.
 
 ## Engineering standards
 
-The repository now includes a language- and framework-independent engineering baseline under [`docs/standards/`](docs/standards/README.md).
+The repository includes a language- and framework-independent engineering baseline under [`docs/standards/`](docs/standards/README.md).
 
 These standards define cross-project invariants such as:
 
@@ -47,33 +74,19 @@ These standards define cross-project invariants such as:
 - semantic implementation quality and explicit units/representations;
 - failure semantics that do not hide invalid state behind defaults or fallback.
 
-They do **not** prescribe a universal directory structure or replace project-local architecture and framework rules. Projects map the baseline onto their own technology and business context.
-
-## Development lifecycle
-
-The v0.1 lifecycle is:
-
-1. Produce and approve a **PRD** for the current requirement/version.
-2. Produce a **Technical Design** that maps the PRD onto the actual codebase, defines terminology and module boundaries, applies relevant engineering/project standards, and slices work into agent-sized tasks.
-3. Generate **tests per module task** from the frozen PRD + Technical Design, then freeze the test contract.
-4. Execute **vertical module loops**: Test → Coding → Module CR.
-5. Integrate completed modules through a top-level coding/integration agent.
-6. Run a **Final CR** against the complete PRD, technical design, applicable standards, tests, and integrated code.
-7. Perform focused human E2E/acceptance where product judgment is required.
-
-See [`docs/workflow/development-lifecycle.md`](docs/workflow/development-lifecycle.md).
+They do **not** prescribe a universal directory structure or replace project-local architecture and framework rules.
 
 ## Key constraints
 
-- Chat history is not a source of truth.
-- Prompts are not a source of truth.
-- Prompts should reference current repository artifacts rather than duplicate them.
-- A frozen upstream artifact is read-only to downstream agents.
-- If a downstream agent believes a frozen artifact is wrong, it must stop and raise a **Freeze Break Request** instead of silently editing it.
-- Agents should receive the smallest sufficient task context and write scope.
-- Sub-agents do not negotiate product truth with each other; they read versioned artifacts and report structured status to the orchestrator.
-- Scope discovered during one module should not be silently absorbed into that module unless it blocks correctness.
-- Project-specific standards refine the universal engineering baseline; conflicts with frozen or authoritative artifacts must be surfaced rather than silently resolved.
+- Repository artifacts and code are the durable source of truth.
+- Prompts reference truth; they do not duplicate or replace it.
+- A frozen upstream artifact is read-only to downstream stages.
+- A downstream agent that finds a frozen artifact wrong must raise a **Freeze Break Request** instead of silently editing it.
+- Coding agents do not weaken frozen tests to regain green status.
+- Agents receive the smallest sufficient context and write scope.
+- Module work stays vertical and bounded; unrelated findings go to backlog unless they block correctness.
+- Sub-agents do not negotiate project truth through free-form summaries; they read repository artifacts directly and return structured status.
+- Human attention is reserved for product intent, material trade-offs, freeze breaks, and final acceptance—not routine technical detail.
 
 ## Repository layout
 
@@ -82,10 +95,11 @@ docs/
   architecture/       System model and boundaries
   workflow/           Lifecycle and freeze/gate rules
   standards/          Language-independent engineering baseline
+  protocols/          Role/output execution contracts
   prompts/            Prompt-generation model
   task-packets/       Structured handoff contract
   decisions/          Architectural decisions and rationale
-  roadmap.md          Planned evolution
+  roadmap.md          Validation focus and deferred possibilities
 
 templates/
   prd.md
@@ -105,17 +119,18 @@ prompts/
 
 ## Start here
 
-- [`docs/architecture/system-model.md`](docs/architecture/system-model.md) — what is truth, control, and execution.
-- [`docs/standards/README.md`](docs/standards/README.md) — engineering baseline and how project-specific rules map onto it.
-- [`docs/standards/module-design.md`](docs/standards/module-design.md) — ownership, placement, sharing, and dependency rules.
-- [`docs/workflow/development-lifecycle.md`](docs/workflow/development-lifecycle.md) — end-to-end development flow.
-- [`docs/workflow/freeze-gates.md`](docs/workflow/freeze-gates.md) — what freezes mean and how to break them safely.
-- [`docs/task-packets/task-packet.md`](docs/task-packets/task-packet.md) — structured agent handoff contract.
-- [`docs/prompts/prompt-generation.md`](docs/prompts/prompt-generation.md) — how phase-specific prompts should be generated.
-- [`docs/decisions/0001-repository-truth-and-compiled-execution.md`](docs/decisions/0001-repository-truth-and-compiled-execution.md) — why the project is structured this way.
+- [`docs/workflow/development-lifecycle.md`](docs/workflow/development-lifecycle.md) — current end-to-end workflow.
+- [`docs/protocols/execution-contract.md`](docs/protocols/execution-contract.md) — stage roles and human/agent output contract.
+- [`docs/workflow/freeze-gates.md`](docs/workflow/freeze-gates.md) — freeze semantics and safe freeze breaks.
+- [`docs/prompts/prompt-generation.md`](docs/prompts/prompt-generation.md) — how stage prompts are composed without becoming a second truth source.
+- [`docs/task-packets/task-packet.md`](docs/task-packets/task-packet.md) — structured task handoff.
+- [`docs/architecture/system-model.md`](docs/architecture/system-model.md) — truth, control, and execution boundaries.
+- [`docs/standards/README.md`](docs/standards/README.md) — engineering baseline.
 
-## Status
+## Current focus
 
-**v0.1 baseline** — methodology, engineering standards, templates, role prompts, freeze semantics, and task-packet contracts are initialized.
+The project is in **methodology validation**, not platform construction.
 
-The next step is not to build a large orchestration platform. It is to validate the workflow and engineering baseline on real projects, collect failure evidence, and then automate only the controls that prove useful: prompt compilation, write-scope enforcement, freeze-diff checks, task scheduling, and review dispatch.
+The immediate next step is to run this protocol on real development work, observe where agents still drift or humans still receive too much information, and refine the documents/prompts from evidence.
+
+Future automation—potentially implemented here, or integrated with systems such as GitHub Spec Kit—remains intentionally unfrozen. See [`docs/roadmap.md`](docs/roadmap.md).
