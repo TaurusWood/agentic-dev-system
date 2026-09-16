@@ -4,7 +4,7 @@ description: Use for non-trivial software development work that benefits from st
 license: MIT
 compatibility: Requires access to the target project repository. Sub-agent or multi-thread delegation is optional; manual multi-chat execution is fully supported.
 metadata:
-  version: "0.1.0"
+  version: "0.1.1"
   source: "TaurusWood/agentic-dev-system"
 ---
 
@@ -14,6 +14,17 @@ Use this skill as a lightweight controller for the development method defined by
 
 The skill controls **workflow semantics**: stage selection, authority boundaries, freezes, output contracts, and handoffs. It does not assume the runtime can create chats, spawn agents, manage worktrees, or persist orchestration state.
 
+## Canonical runtime protocol
+
+The normative runtime semantics are defined only in these references:
+
+- `references/workflow.md` — routing and lifecycle;
+- `references/stage-contracts.md` — stage authority and done/stop contracts;
+- `references/freeze-output.md` — freeze establishment, integrity preflight, freeze breaks, and output profiles;
+- `references/prompt-composition.md` — execution-prompt composition.
+
+Do not invent a second Role Contract or freeze protocol from a copied prompt or explanatory document. If another artifact conflicts with these references, stop and surface the conflict instead of choosing whichever version is easier.
+
 ## Core rule
 
 Repository code and versioned project documents are authoritative. Chat history and generated prompts are execution context, not durable truth.
@@ -22,11 +33,12 @@ Repository code and versioned project documents are authoritative. Chat history 
 
 1. Inspect the target repository before proposing changes.
 2. Read project-local `AGENTS.md` / equivalent instructions when present.
-3. Locate only the product docs, technical docs, tests, and code relevant to the task.
-4. Classify the task entry path and current stage.
-5. Load only the reference file(s) needed for that stage.
-6. Execute the stage within its authority boundary.
-7. Return a concise Human Brief and, when another stage must continue, an Agent Handoff or a ready-to-use next-stage prompt.
+3. Locate only the product docs, technical docs, tests, task packet, and code relevant to the task.
+4. Classify the task entry path and current stage using `references/workflow.md`.
+5. Load `references/stage-contracts.md` for the selected stage.
+6. If any upstream freeze is consumed, load `references/freeze-output.md` and perform its freeze-integrity preflight before writing.
+7. Execute the stage within its authority boundary.
+8. Return a concise Human Brief and, when another stage must continue, an Agent Handoff or a ready-to-use next-stage prompt.
 
 Do not require a project profile file. Infer the project map from existing repository instructions and structure unless the project explicitly provides one.
 
@@ -56,9 +68,16 @@ Roles are authority boundaries, not personas. Do not replace explicit ownership,
 
 ## Freeze and output rules
 
-Read `references/freeze-output.md` when a freeze exists, a downstream contradiction is found, or a stage result must be handed to a human/agent.
+Read `references/freeze-output.md` whenever a freeze exists, a downstream contradiction is found, or a stage result must be handed to a human/agent.
 
-Critical rule: after TEST FREEZE, Coding must not edit frozen tests merely to regain green status. Raise `FREEZE_BREAK_REQUIRED` to the owning stage instead.
+Critical rules:
+
+- a freeze is established only at a committed revision after the owning stage's required review/approval;
+- downstream stages verify frozen paths before editing;
+- after TEST FREEZE, Coding must not edit frozen tests merely to regain green status;
+- a new/bug-regression test contract normally needs baseline sensitivity evidence before TEST FREEZE.
+
+Raise `FREEZE_BREAK_REQUIRED` to the owning stage when a frozen contract is invalid instead of repairing it downstream.
 
 Default human output is Human Brief. Use Human Discussion only for material decisions, real trade-offs, Freeze Break approval, or when explicitly requested.
 

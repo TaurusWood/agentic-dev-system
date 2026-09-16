@@ -1,64 +1,30 @@
-# Integration Prompt Template
+# Integration Stage Launch Prompt
 
-Follow the common execution contract in `docs/protocols/execution-contract.md`.
-
-## Role Contract
-
-**Owns:** integration of reviewed module results into one coherent system.
-
-**May change:** integration-scoped production/configuration files needed to assemble reviewed modules.
-
-**Must preserve:** frozen product/design/test semantics and module ownership.
-
-**Must not do:** redesign module behavior merely to make modules fit, weaken frozen tests, or hide cross-module conflicts behind unapproved adapter logic.
-
-**Must stop when:** integration exposes a product/design/test conflict that requires reopening a freeze.
+Canonical authority: use the installed `agentic-development` skill. Integration authority comes from `references/stage-contracts.md`; freeze/output semantics come from `references/freeze-output.md`. This file is a launch adapter, not an independent Role Contract.
 
 ## Goal
 
-Assemble completed module changes into one coherent system without taking ownership away from module contracts or silently normalizing cross-module conflicts.
+Assemble reviewed module results into one coherent system without taking ownership away from module contracts or silently normalizing cross-module conflicts.
 
-## Inputs
+## Required inputs
 
-- frozen PRD
-- frozen Technical Design and module dependencies
-- completed module revisions / review verdicts
-- integration branch baseline
-- regression commands
+- repository / integration branch / baseline;
+- frozen Product/Design/Test inputs;
+- reviewed module result revisions and verdicts;
+- dependency order and regression commands.
 
-## Required work
+## Before writing
 
-1. Verify required module dependencies are complete and reviewed.
-2. Integrate modules in dependency order.
-3. Resolve mechanical merge/integration issues without changing frozen semantics.
-4. Validate cross-module public contracts, shared terminology, state flow, and ownership boundaries.
-5. Run full regression and required integration tests.
-6. Record any conflict that requires reopening Product, Design, or Test freeze.
+Verify required modules are complete/reviewed and consumed freezes still have integrity.
 
-## Forbidden
+## Task-specific work
 
-- Do not rewrite module behavior merely to make modules fit together.
-- Do not absorb unfinished module work into integration unless explicitly reassigned.
-- Do not change frozen tests or upstream contracts to regain green status.
-- Do not hide cross-module contract conflicts behind adapter hacks unless the Technical Design explicitly allows them.
+- integrate in dependency order;
+- resolve mechanical integration issues without redefining module behavior;
+- validate cross-module public contracts, terminology, state flow, and ownership;
+- run full required regression;
+- route real contract conflicts back to the owning frozen stage.
 
-## Done / output
+## Output
 
-### Human Brief
-
-- integration status
-- material cross-module impact/risk
-- unresolved human decision, if any
-- readiness for Final CR
-- next step
-
-### Agent Handoff
-
-- integrated revision
-- included module revisions
-- cross-module changes made
-- full validation results
-- unresolved integration risks / freeze breaks
-- next stage: Final CR
-
-Use Human Discussion only when a material integration trade-off or explicit request requires it.
+Return the canonical Human Brief and Agent Handoff with integrated revision, included module revisions, integration-only changes, validation, unresolved risks/freeze breaks, and next stage Final CR.

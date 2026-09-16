@@ -2,13 +2,16 @@
 
 ## 1. Inputs
 
-- PRD path / revision:
-- Current code baseline:
+- PRD path / PRODUCT FREEZE revision:
+- Repository / branch:
+- Current code baseline (`base_revision`):
 - Applicable universal standards:
 - Project / language / framework standards:
 - Approved exceptions or deviations:
 
 Standards should be referenced, not copied. A deviation must identify the conflicting rule, reason, and approval source rather than silently redefining the baseline.
+
+Before design changes, verify PRODUCT FREEZE integrity using the canonical runtime freeze contract.
 
 ## 2. Existing-system findings
 
@@ -67,6 +70,9 @@ Each task should be independently understandable, testable, and reviewable.
 - Expected test scope:
 - Integration points:
 - Completion evidence:
+- Task Packet path:
+
+For every implementation-bound task, create an initial Task Packet from `templates/task-packet.yaml`. Technical Design owns the initial repository/branch/`base_revision`, Product/Design references, scope, dependencies, standards, validation, and stop conditions. Leave Test-owned contract/evidence fields for the Test stage.
 
 ## 8. Task DAG
 
@@ -85,6 +91,9 @@ Only implementation-relevant risks.
 ## 10. Design Freeze
 
 - Product freeze consumed:
+- Design review status:
 - Design freeze revision:
-- Review status:
+- Task Packets created/updated:
 - Notes:
+
+`ready to freeze` is not an established DESIGN FREEZE. Record the committed revision only after required review is complete.

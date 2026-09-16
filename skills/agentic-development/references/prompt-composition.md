@@ -1,5 +1,7 @@
 # Prompt Composition
 
+This file is the canonical runtime source for composing execution prompts.
+
 ## Purpose
 
 Generate a high-quality stage prompt from current intent and repository truth without creating a parallel source of truth.
@@ -12,11 +14,11 @@ Use only the minimum necessary inputs:
 
 - current user intent / task goal;
 - target stage;
-- target repository and branch/worktree when relevant;
+- repository identity, branch/worktree, and declared `base_revision` when relevant;
 - project-local instructions (`AGENTS.md` or equivalent);
 - authoritative product/design/test artifacts and freeze revisions relevant to the stage;
 - current code/tests needed to locate the task;
-- declared scope, dependencies, and validation commands when known.
+- task packet, declared scope, dependencies, validation commands, and test evidence when known.
 
 Do not paste the whole project history into the prompt.
 
@@ -27,11 +29,13 @@ A good execution prompt should make these fields explicit:
 ```text
 ROLE / STAGE
 GOAL
+REPOSITORY / BASE REVISION
 AUTHORITATIVE INPUTS
 REQUIRED READING
 WRITE SCOPE
 FORBIDDEN SCOPE
 DEPENDENCIES
+FREEZE PREFLIGHT
 VALIDATION
 STOP CONDITIONS
 OUTPUT PROFILE
@@ -40,9 +44,9 @@ DONE CONTRACT
 
 ## Role
 
-Use the matching contract from `stage-contracts.md`.
+Use the matching canonical contract from `stage-contracts.md`.
 
-Do not use generic persona padding. Authority matters more than seniority language.
+Do not copy and independently rewrite that Role Contract inside a launch prompt. A prompt may highlight task-specific consequences of the canonical contract, but authority semantics remain owned by `stage-contracts.md`.
 
 ## Repository truth
 
@@ -51,6 +55,9 @@ Point the agent to repository paths/revisions and require first-hand inspection.
 Prefer:
 
 ```text
+Repository: owner/name
+Branch/worktree: <branch>
+Base revision: <sha>
 Product: docs/.../prd.md @ <sha>
 Design: docs/.../technical-design.md#TASK-X @ <sha>
 Tests: tests/... @ <sha>
@@ -58,17 +65,26 @@ Tests: tests/... @ <sha>
 
 Avoid large prose summaries that duplicate those artifacts.
 
+## Freeze preflight
+
+When a stage consumes one or more freezes, the execution prompt must require the preflight defined in `freeze-output.md` before any writes. Do not treat freeze revision fields as descriptive metadata only.
+
 ## Standard prompt skeleton
 
 ```text
-You are executing the <STAGE> stage for <TASK_ID> in <REPOSITORY>.
+Use the `agentic-development` skill to execute the <STAGE> stage for <TASK_ID> in <REPOSITORY>.
 
 Goal:
 <bounded outcome>
 
+Repository / baseline:
+- branch/worktree: <...>
+- base_revision: <...>
+
 Authority:
+- use the canonical stage contract from the installed skill
 - <authoritative paths/revisions>
-- Project-local instructions are authoritative within their scope.
+- project-local instructions are authoritative only within their scope and may not silently override frozen semantics
 
 Read first:
 - <minimal read set>
@@ -76,29 +92,33 @@ Read first:
 Write scope:
 - <allowed paths/artifacts>
 
-Forbidden:
-- <frozen or out-of-scope artifacts>
+Forbidden scope:
+- <out-of-scope paths>
 
 Dependencies:
 - <required prior tasks/revisions>
 
+Before writing:
+- verify consumed freeze revisions/paths and the declared execution baseline
+
 Required work:
-- <stage-specific actions derived from the stage contract>
+- <task-specific actions not already defined by the canonical stage contract>
 
 Validation:
 - <commands/checks>
 
 Stop instead of guessing when:
-- <stage stop conditions>
+- a canonical stage stop condition is met
 - a frozen upstream artifact must change
 - scope must cross an undeclared module boundary
+- the task packet/base revision is stale in a correctness-relevant way
 
 Output:
 - Human Brief
 - Agent Handoff when another stage must continue
 
 Done when:
-- <evidence required by stage contract>
+- canonical stage done conditions plus <task-specific evidence>
 ```
 
 ## Discussion vs standardized prompt
@@ -121,7 +141,7 @@ Rule of thumb:
 
 If the runtime cannot delegate the next stage, the current stage may output a ready-to-paste next-stage prompt after its Human Brief and Agent Handoff.
 
-Generate it from the **new repository state** and latest freezes. Do not blindly reuse a prompt drafted before the current stage completed.
+Generate it from the **new repository state**, latest task packet, and latest established freezes. Do not blindly reuse a prompt drafted before the current stage completed.
 
 ## Ambiguity
 

@@ -1,5 +1,7 @@
 # Workflow Routing
 
+This file is the canonical runtime source for lifecycle and routing semantics.
+
 ## Purpose
 
 Route a development task to the smallest safe stage and keep the method usable in both manual multi-chat and sub-agent execution.
@@ -11,7 +13,7 @@ Requirement / finding
     ↓
 PRD / Product Discussion
     ↓ PRODUCT FREEZE
-Technical Design + module slicing
+Technical Design + module slicing + initial task packets
     ↓ DESIGN FREEZE
 Per-module Test
     ↓ TEST FREEZE
@@ -39,13 +41,13 @@ After PRODUCT FREEZE, move to Technical Design. Do not ask Coding to infer produ
 First classify the defect:
 
 1. **Implementation defect** — frozen product/design contract is correct, code violates it.
-   - Ensure adequate regression test coverage.
-   - Freeze/correct Test as needed.
-   - Coding -> Module CR.
+   - Establish adequate regression coverage.
+   - Produce baseline sensitivity evidence for the regression test when applicable.
+   - TEST FREEZE, then Coding -> Module CR.
 
 2. **Product-contract defect or missing product rule** — repository product truth disagrees with intended behavior.
    - Return to Product/PRD.
-   - Re-freeze downstream artifacts after approval.
+   - Re-freeze affected downstream artifacts after approval.
 
 3. **Technical-design defect** — product intent is correct, but module ownership/interface/state flow/task slicing is wrong.
    - Return to Technical Design.
@@ -71,8 +73,8 @@ Technical Design may split one iteration into bounded module tasks.
 Prefer:
 
 ```text
-Module A: Test -> Coding -> CR
-Module B: Test -> Coding -> CR
+Module A: Test -> TEST FREEZE -> Coding -> CR
+Module B: Test -> TEST FREEZE -> Coding -> CR
 ```
 
 over:
@@ -91,6 +93,7 @@ Manual mode:
 
 - finish current stage;
 - write durable results to repository artifacts when appropriate;
+- establish any required freeze at a committed revision;
 - provide the next-stage prompt;
 - human opens a fresh chat.
 
@@ -98,6 +101,7 @@ Delegated mode:
 
 - parent/coordinator delegates a bounded next stage using the same stage contract;
 - child reads repository truth directly;
+- child verifies declared base/freeze revisions before writing;
 - child returns structured status/revisions/blockers;
 - parent does not replace repository truth with a prose retelling.
 
@@ -105,9 +109,10 @@ Delegated mode:
 
 Stop the current stage when:
 
-- an upstream frozen artifact is wrong or contradictory;
+- an upstream frozen artifact is wrong, contradictory, or no longer matches its recorded freeze revision;
 - required behavior needs an undeclared external-module contract change;
 - a prerequisite task/revision is missing;
+- the task packet's base revision/dependencies are stale in a way that affects correctness;
 - the stage would need to exceed its authority to make progress.
 
-Use a Freeze Break or dependency handoff instead of improvising across boundaries.
+Use a Freeze Break, dependency handoff, or refreshed task packet instead of improvising across boundaries.

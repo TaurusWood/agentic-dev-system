@@ -1,6 +1,6 @@
 # Stage Contracts
 
-Use these as authority boundaries for execution or prompt generation.
+This file is the canonical runtime source for stage authority. Use these contracts for execution and prompt generation. Other prompts/documents may reference these rules but must not redefine them.
 
 ## PRD / Product Discussion
 
@@ -29,6 +29,7 @@ Use these as authority boundaries for execution or prompt generation.
 - intended observable behavior is explicit enough for Technical Design
 - unresolved decisions are surfaced
 - a compact human approval surface is available
+- after required approval, PRODUCT FREEZE can be established at a committed revision
 
 ## Technical Design
 
@@ -38,12 +39,13 @@ Use these as authority boundaries for execution or prompt generation.
 - public contracts and invariants
 - state/data flow and integration boundaries
 - agent-sized task slicing and dependencies
+- creation of the initial task packet for each bounded module task
 
 **May change**
-- technical-design artifacts in scope
+- technical-design artifacts and initial task packets in scope
 
 **Must preserve**
-- PRODUCT FREEZE semantics
+- PRODUCT FREEZE semantics and integrity
 
 **Must not do**
 - redefine user-visible behavior
@@ -52,22 +54,28 @@ Use these as authority boundaries for execution or prompt generation.
 
 **Must stop when**
 - product intent is contradictory or a cross-module change would alter product scope
+- PRODUCT FREEZE integrity preflight fails
 
 **Done when**
 - module/task boundaries, dependencies, scope, contracts, and validation expectations are explicit
+- each implementation-bound task has an initial packet with repository identity, `base_revision`, product/design inputs, scope, dependencies, validation, and stop conditions
+- after required review, DESIGN FREEZE can be established at a committed revision
 
 ## Test
 
 **Owns**
 - proving frozen product and technical contracts for one bounded task
 - deterministic fixtures and regression coverage
+- the `test_contract` and test-evidence fields of the task packet until TEST FREEZE
 
 **May change**
 - tests/fixtures inside assigned Test scope before TEST FREEZE
+- task-packet test-contract/evidence fields for the assigned task
 
 **Must preserve**
 - PRODUCT FREEZE
 - DESIGN FREEZE
+- task goal, module scope, and dependencies defined by Technical Design
 
 **Must not do**
 - redefine product behavior to make testing easier
@@ -76,12 +84,17 @@ Use these as authority boundaries for execution or prompt generation.
 
 **Must stop when**
 - upstream contracts conflict or cannot be tested coherently
+- PRODUCT/DESIGN freeze integrity preflight fails
+- meaningful test coverage requires an undeclared external-module contract change
 
 **Done when**
 - behavior/invariants/failure boundaries are covered
-- expected RED/GREEN semantics are known
 - validation commands are explicit
-- TEST FREEZE can be established after required review
+- for a new behavior or bug regression that is expected to be absent/broken at the declared baseline, the relevant test is run against `baseline_revision` and fails for the expected semantic reason
+- if the relevant test is already green at baseline, the Test result explicitly records why that is valid and what evidence still makes the contract discriminating
+- task-packet test paths, evidence, and proposed test revision are updated
+- required independent test review is complete
+- TEST FREEZE can be established at a committed revision
 
 ## Coding
 
@@ -95,6 +108,7 @@ Use these as authority boundaries for execution or prompt generation.
 - frozen product/design artifacts
 - frozen tests
 - valid module ownership and external contracts
+- task-packet scope/dependencies
 
 **Must not do**
 - edit frozen tests to regain green status
@@ -103,11 +117,13 @@ Use these as authority boundaries for execution or prompt generation.
 - add speculative abstraction or fallback that weakens failure semantics
 
 **Must stop when**
+- any required freeze-integrity preflight fails
 - frozen Test or Design is invalid
 - safe implementation requires an undeclared external contract change
-- a prerequisite dependency is missing
+- a prerequisite dependency is missing or the declared base revision is materially stale
 
 **Done when**
+- freeze-integrity preflight passed before edits
 - required validation passes or a precise blocker is returned
 - diff is self-reviewed against contracts
 - frozen artifacts remain unchanged
@@ -129,8 +145,11 @@ Use these as authority boundaries for execution or prompt generation.
 
 **Must stop when**
 - the upstream contract itself is wrong; request a Freeze Break instead
+- freeze-integrity evidence is missing or contradicts the reviewed revision
 
 **Done when**
+- frozen artifacts and declared scope are independently checked against revisions/diff
+- test sensitivity evidence is reviewed where applicable
 - findings are evidence-based and ordered by severity
 - verdict is explicit: PASS / PASS_WITH_NOTES / CHANGES_REQUIRED / FREEZE_BREAK_REQUIRED
 
@@ -153,6 +172,7 @@ Use these as authority boundaries for execution or prompt generation.
 
 **Must stop when**
 - integration reveals a real cross-module contract conflict
+- required module revision/review evidence is missing
 
 **Done when**
 - reviewed modules are integrated in dependency order

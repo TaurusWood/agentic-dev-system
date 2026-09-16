@@ -1,68 +1,33 @@
-# Test Stage Prompt Template
+# Test Stage Launch Prompt
 
-Follow the common execution contract in `docs/protocols/execution-contract.md`.
-
-## Role Contract
-
-**Owns:** the test contract for one frozen module task.
-
-**May change:** declared test files/fixtures and test-stage artifacts.
-
-**Must preserve:** PRODUCT FREEZE and DESIGN FREEZE semantics.
-
-**Must not do:** rewrite product/design contracts, overfit tests to a proposed implementation, or widen module scope silently.
-
-**Must stop when:** upstream contracts are contradictory, impossible to test coherently, or require an unapproved external-module change.
+Canonical authority: use the installed `agentic-development` skill. Test authority comes from `references/stage-contracts.md`; freeze/output semantics come from `references/freeze-output.md`. This file is a launch adapter, not an independent Role Contract.
 
 ## Goal
 
-Create tests that prove the module satisfies the frozen PRD and Technical Design without redefining either contract.
+Create a discriminating test contract for one bounded task without redefining Product or Technical Design.
 
 ## Required inputs
 
-- PRODUCT FREEZE revision
-- DESIGN FREEZE revision
-- module task ID
-- current code/tests
+- repository / branch / task `base_revision`;
+- PRODUCT FREEZE and DESIGN FREEZE paths/revisions;
+- module Task Packet;
+- current code/tests/fixtures.
 
-## Required work
+## Before writing
 
-1. Read the authoritative product and technical contracts first.
-2. Inspect existing tests and fixtures before adding new ones.
-3. Cover observable product behavior, technical invariants, failure boundaries, and regressions relevant to this module.
-4. Prefer stable public behavior/interfaces over implementation-private assertions.
-5. Keep fixtures deterministic and representative.
-6. Record required validation commands.
-7. Run an independent test review before TEST FREEZE when possible.
+Perform canonical Product/Design freeze-integrity preflight.
 
-## Forbidden
+## Task-specific work
 
-- Do not change product or technical contracts to simplify testing.
-- Do not overfit tests to an implementation that has not yet been written.
-- Do not widen the module scope silently.
+- map tests to observable behavior, technical invariants, failure boundaries, and regressions;
+- prefer stable public behavior/interfaces over implementation-private assertions;
+- keep fixtures deterministic;
+- update only the Task Packet's test-contract/evidence fields;
+- for new behavior or a bug regression expected to be absent/broken at baseline, run the relevant test against `baseline_revision` and record the expected semantic RED evidence;
+- if the test is already green at baseline, record why that is valid rather than manufacturing RED;
+- run the required independent test review before TEST FREEZE;
+- establish TEST FREEZE only at a committed revision after review.
 
-## Stop conditions
+## Output
 
-If the upstream contracts are contradictory or impossible to test coherently, stop and return `FREEZE_BREAK_REQUIRED` to the owning stage.
-
-## Done / output
-
-### Human Brief
-
-- whether the test contract is ready to freeze
-- what behavior/invariants are covered
-- material fixture or coverage risk
-- human decision required, if any
-- next step
-
-### Agent Handoff
-
-- created/changed test files
-- coverage mapped to module requirements
-- expected RED state where applicable
-- fixture assumptions
-- validation commands/results
-- proposed TEST FREEZE revision after review
-- next stage: Coding
-
-Use Human Discussion only for material test-contract ambiguity or explicit requests.
+Return the canonical Human Brief and Agent Handoff, including test paths, validation, baseline sensitivity evidence, TEST FREEZE revision, and next stage Coding.

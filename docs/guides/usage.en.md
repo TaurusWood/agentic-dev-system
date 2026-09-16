@@ -1,360 +1,117 @@
 # Usage Guide (English)
 
-> Agentic Development System is currently a **software-development protocol that can be executed either manually across multiple chats or by runtimes with sub-agents**. It is a methodology first; no CLI, scheduler, or multi-agent platform is required to use it.
+> Agentic Development System is a software-development protocol executable either manually across chats or by runtimes with sub-agents. The current focus is protocol validation, not scheduler/platform construction.
 
 Chinese version: [`usage.zh-CN.md`](usage.zh-CN.md)
 
-## 1. Where to use it
+## 1. One runtime protocol
 
-The workflow is suitable for:
+Runtime semantics are defined only by:
 
-- new features or version iterations;
-- UI / UX / interaction changes;
-- bug fixes and manual E2E findings;
-- refactors and technical debt;
-- non-trivial changes that benefit from multiple staged agents/chats.
+- `skills/agentic-development/references/workflow.md`
+- `skills/agentic-development/references/stage-contracts.md`
+- `skills/agentic-development/references/freeze-output.md`
+- `skills/agentic-development/references/prompt-composition.md`
 
-Not every small change needs the full lifecycle. Smaller tasks may use a lighter path, but once Test / Coding / CR are separated, their Role, Freeze, and output contracts should still be respected.
+`prompts/*` are launch adapters and no longer duplicate Role Contracts. `docs/*` explains rationale and usage. If explanatory prose conflicts with the Skill references, the Skill references win and the prose should be corrected.
 
-## 2. Core rules
+## 2. Install and invoke
 
-1. **Code and versioned repository documents are authoritative.** Chat history is not.
-2. **PRD defines WHAT; Technical Design defines HOW.**
-3. **Frozen upstream artifacts are read-only downstream.** If they are wrong, raise a Freeze Break Request.
-4. **After TEST FREEZE, Coding must not weaken tests simply to regain green status.**
-5. **Execute vertically by technical slice.** Prefer `Test → Coding → CR` per module over writing all tests first and all code later.
-6. **Human review is reserved for judgment.** Human Brief is the default; Human Discussion is used only when a real trade-off exists.
-7. **Prompts are execution interfaces, not truth.** They reference repository truth rather than restating another copy of it.
-
-## 3. Two execution modes
-
-### 3.1 Manual multi-chat
-
-This is the lowest-dependency mode and the recommended baseline while validating the methodology.
-
-```text
-PRD / Product Discussion Chat
-        ↓
-Technical Design Chat
-        ↓
-Module A: Test Chat → Coding Chat → CR Chat
-Module B: Test Chat → Coding Chat → CR Chat
-        ↓
-Integration / Top-level Coding Chat
-        ↓
-Final CR Chat
+```bash
+npx skills add https://github.com/TaurusWood/agentic-dev-system --skill agentic-development
 ```
 
-Each new chat is started with the relevant stage prompt and reads repository facts directly.
+Whether a human opens a fresh chat or a runtime delegates to a sub-agent, the execution unit should use `agentic-development` and read the target repository directly.
 
-### 3.2 Sub-agent / multi-thread execution
-
-If Codex, Grok, Antigravity, or another runtime supports sub-agents, a coordinator may dispatch the same tasks automatically.
-
-**Automation is only an execution form.** It must not alter the semantics of PRD, Technical Design, Freeze, Role Contract, tests, or handoffs.
-
-## 4. Multiple entry paths
-
-Development does not always begin with a full greenfield requirement.
-
-### Entry A: feature / version iteration
+## 3. Lifecycle
 
 ```text
-Natural-language discussion
-→ PRD
+Requirement / finding
+→ PRD / Product Discussion
 → PRODUCT FREEZE
-→ Technical Design + Module Slicing
+→ Technical Design + Task Packet
 → DESIGN FREEZE
-→ Per-module Test → TEST FREEZE → Coding → CR
+→ Module Test
+→ TEST FREEZE
+→ Coding
+→ Module CR
 → Integration
 → Final CR
-→ focused human acceptance
+→ Focused Human Acceptance
 ```
 
-### Entry B: bug fix / manual E2E finding
+A task may enter later. Enter at the earliest stage that still owns unresolved truth.
 
-First determine whether the issue is only an implementation defect or whether it reveals a bad upstream contract.
+## 4. Freeze is a versioned fact
 
-- **Implementation clearly violates a frozen contract**: go directly to module Test/Coding/CR.
-- **Existing PRD/GDD conflicts with intended behavior**: repair product truth first, then re-freeze.
-- **Module boundary or technical design is wrong**: return to Technical Design.
+A freeze requires:
 
-Do not assume that something called a “bug” is necessarily a code-only change.
+1. the owning stage's required review/approval;
+2. the artifact to exist in a committed Git revision;
+3. paths + freeze revision recorded in Task Packet/Handoff;
+4. stage-specific evidence recorded.
 
-### Entry C: technical refactor
+`ready to freeze`, `proposed freeze`, and an uncommitted working tree are not established freezes.
 
-If user-visible behavior is unchanged, the PRD can be lightweight, but explicitly freeze:
+Before writing, downstream stages verify frozen paths against recorded revisions. An unexplained mismatch stops execution rather than allowing the agent to choose the convenient version.
 
-- the behavior that must remain unchanged;
-- the technical objective;
-- module boundaries;
-- regression expectations.
+## 5. TEST FREEZE also needs discrimination
 
-Then continue with Technical Design → Test → Coding → CR.
+For new behavior or a bug regression expected to be absent/broken at `baseline_revision`, the relevant test should be run at that baseline and fail for the expected semantic reason before TEST FREEZE.
 
-## 5. Where natural-language Discussion is appropriate
+If baseline is already GREEN, record a valid justification instead of manufacturing RED.
 
-Use open-ended natural-language discussion where uncertainty is genuinely high:
+This addresses the second false-green mode: a test contract that was weak from the start.
 
-- product requirements / PRD;
-- UX / UI / player journey;
-- bug description, reproduction, and root-cause exploration;
-- technical solution and architecture trade-offs;
-- Freeze Break decisions.
+## 6. Task Packet ownership
 
-The goal of Discussion is to **remove uncertainty and write the result back into repository artifacts**.
+Technical Design creates the initial Task Packet with repository/branch/`base_revision`, Product/Design revisions, scope, dependencies, validation, and stop conditions.
 
-Once the goal is stable, recurring execution steps should move to standardized prompts:
+Test owns only the packet's `test_contract` and test-evidence fields before TEST FREEZE. A coordinator may update execution metadata such as phase/status/result revision, but it does not silently rewrite frozen contract fields.
 
-- Test;
-- Coding;
-- Module CR;
-- Integration;
-- Final CR;
-- any other repeated stage with stable responsibility.
+## 7. Manual multi-chat
 
-Rule of thumb:
-
-> **Explore with Discussion; execute with standardized prompts.**
-
-## 6. Prompt Generator: how it works today
-
-The **Prompt Generator is not an automation tool**.
-
-It is a prompt-composition process:
+No orchestrator is required:
 
 ```text
-your current intent
-+ the relevant stage template
-+ current project truth (docs / code / branch / freezes)
-        ↓
-a high-quality task-specific execution prompt
+Product Chat
+→ Design Chat
+→ Module A Test Chat
+→ Module A Coding Chat
+→ Module A CR Chat
+→ ...
+→ Integration Chat
+→ Final CR Chat
 ```
 
-Use [`../../prompts/prompt-generator.md`](../../prompts/prompt-generator.md) to start a chat that composes the next execution prompt.
+Each fresh chat reconstructs execution state from repository truth + Task Packet rather than a long previous-chat summary.
 
-### Example input
+## 8. Prompt composition
+
+Prompt Generator remains a composition practice:
 
 ```text
-Project: TaurusWood/pocket-railway
-Branch: fix/m1-interaction-audit
-Stage: Test
-Module: BUILD-01
-Product truth: docs/.../prd.md @ <PRODUCT_FREEZE>
-Technical truth: docs/.../technical-design.md#BUILD-01 @ <DESIGN_FREEZE>
-Intent: create the test contract for Build mode: click city A → click city B → route comparison
+current intent
++ canonical stage contract
++ repository truth
++ Task Packet / Freeze Context
+→ execution prompt
 ```
 
-The Prompt Generator should return a prompt that can be pasted directly into a fresh Test Chat.
+Root prompt files add launch shape only; they do not own Role or Freeze semantics.
 
-### Next-step prompt
+> Explore with Discussion; execute with standardized prompts.
 
-When an agent completes a stage and the next stage is already well-defined, its response may include:
+## 9. Outputs
 
-- Human Brief;
-- Agent Handoff;
-- an **optional suggested next-stage prompt**.
+Human Brief is the default: conclusion, capability/boundary, material risk, required human decision, next step.
 
-That next prompt is still only an execution interface. Repository artifacts remain authoritative.
+Human Discussion is reserved for material product/UX/architecture trade-offs, Freeze Breaks, insufficient evidence, or explicit requests.
 
-## 7. Minimum stage-prompt structure
+Agent Handoff carries execution metadata such as revisions, authority, scope, freeze integrity, validation, blockers, and next stage. Durable project truth remains in the repository.
 
-An execution prompt should make these unambiguous:
+## 10. Current non-goals
 
-- Role / what this stage owns;
-- Goal / the one bounded outcome;
-- Authority / authoritative docs and code;
-- Read set / what must be inspected first;
-- Write scope / what may be changed;
-- Forbidden scope / what may not be changed;
-- Dependencies / prerequisites;
-- Validation / proof of completion;
-- Stop conditions / when to stop rather than guess;
-- Output / what to return to humans and downstream agents.
+Do not pre-build a DAG engine, scheduler, queue, worktree manager, Agent RPC layer, state database, or large Prompt Compiler merely because future automation may use one.
 
-Do not substitute large background prose for these fields.
-
-## 8. Freeze usage
-
-### PRODUCT FREEZE
-
-Confirms user-observable behavior, non-goals, and product boundaries.
-
-### DESIGN FREEZE
-
-Confirms technical modules, public contracts, terminology, dependencies, and task slicing.
-
-### TEST FREEZE
-
-Confirms that tests correctly represent product and technical contracts.
-
-### Freeze Break Request
-
-If a downstream stage finds a frozen artifact wrong, it must not silently edit it. Return:
-
-```text
-FREEZE_BREAK_REQUIRED
-Frozen artifact: ...
-Observed conflict: ...
-Why current stage cannot proceed safely: ...
-Suggested owning stage: Product / Design / Test
-Impact if changed: ...
-```
-
-Resume only after the owning stage reviews the change and establishes a new freeze.
-
-## 9. Output contract
-
-See [`../protocols/execution-contract.md`](../protocols/execution-contract.md).
-
-### Human Brief (default)
-
-The shortest useful output for a human:
-
-- conclusion;
-- capability / boundary;
-- impact / risk;
-- decisions required;
-- next step.
-
-If no human decision is needed, avoid dumping routine technical detail.
-
-### Human Discussion
-
-Expand only when:
-
-- materially different options exist;
-- product / UX / architecture needs human judgment;
-- a Freeze Break is required;
-- the user explicitly asks for deeper analysis.
-
-### Agent Handoff
-
-Structured downstream information:
-
-- task ID / status;
-- authoritative paths + revisions;
-- scope;
-- validation;
-- blockers;
-- next stage.
-
-Do not replace repository truth with a long summary of the previous chat.
-
-## 10. Lightweight learning loop
-
-The methodology should improve from real projects, but it should not auto-modify itself during active work.
-
-When meaningful rework or drift occurs, ask:
-
-1. Is this project-specific, or a reusable workflow problem?
-2. Which layer failed: requirement, Technical Design, Test, Coding, CR, Handoff, or Human Output?
-3. What constraint was missing, or what existing rule created unnecessary burden?
-4. Would a template change prevent the same class of failure without making the system heavier?
-
-Only recurring or high-impact findings should be promoted into the base templates.
-
-See [`../workflow/learning-loop.md`](../workflow/learning-loop.md).
-
-## 11. Example: continuing the seven pocket-railway E2E issues
-
-The issues have already been discovered and roughly classified. Do not jump directly into Coding, and do not give all seven issues to one implementation agent.
-
-### Step 1: create the remediation PRD
-
-Open a Product / PRD Discussion Chat with:
-
-- the seven findings;
-- current root-cause analysis;
-- current GDD and actual code;
-- the execution rule: fix vertically by slice and prevent scope expansion.
-
-The output should be one lightweight iteration PRD, for example:
-
-```text
-M1 Interaction E2E Remediation
-
-Goal:
-Restore consistency between Build/Operate interaction, player intuition, and approved product direction.
-
-Known slices:
-- BUILD-01 city-to-city construction planning entry
-- OPS-01 Build → service-line editing handoff
-- RAIL-01 rail upgrade selection semantics
-- ROUTE-01 candidate route naming
-- ROUTE-02 candidate/final-confirmation information architecture
-- COPY-01 player-facing railway terminology
-
-Execution rule:
-Close one slice at a time. Newly discovered issues go to backlog unless they block correctness.
-```
-
-Each slice only needs a short Behavior Card for human approval.
-
-### Step 2: PRODUCT FREEZE
-
-Human review should focus on:
-
-- what the player clicks;
-- what the system shows;
-- what happens next;
-- what must not happen;
-- what existing behavior must remain intact.
-
-The human should not need to review StateOwner, EventBus, or test implementation details.
-
-### Step 3: Technical Design
-
-Open a fresh Technical Design Chat that reads the PRODUCT FREEZE and real code.
-
-It should:
-
-- validate the six technical slices;
-- identify owner/public contract for each slice;
-- declare cross-module dependencies;
-- produce independently executable technical tasks;
-- avoid reopening product behavior.
-
-Then establish DESIGN FREEZE.
-
-### Step 4: execute only the first slice
-
-Recommended first slice: **BUILD-01 — direct city A → city B planning in Build mode**, because it is foundational to the main construction path.
-
-```text
-BUILD-01 Test Chat
-→ Test CR / TEST FREEZE
-→ BUILD-01 Coding Chat
-→ BUILD-01 Module CR
-→ manual E2E click-through
-→ CLOSE BUILD-01
-```
-
-Only then move to the next slice.
-
-### Step 5: Integration / Final CR after all slices
-
-Finally validate:
-
-- full player journeys;
-- terminology;
-- cross-slice state transitions;
-- regression;
-- whether one fix broke another slice.
-
-## 12. Minimal daily checklist
-
-Before starting an important task:
-
-```text
-1. Identify the entry: feature / bug / refactor.
-2. Use Discussion to remove uncertainty and write decisions back to the repository.
-3. Freeze the current upstream truth.
-4. Combine the relevant base template with current intent and project facts to generate the task prompt.
-5. Start a fresh chat/sub-agent for one stage or module only.
-6. Read Human Brief by default; open Discussion only when judgment is required.
-7. Let downstream agents continue from repository truth + Agent Handoff, not long chat summaries.
-8. Update base templates only when real workflow failures justify it.
-```
-
-If these eight steps work reliably, the methodology is already useful. No multi-agent platform is required first.
+First validate the protocol on real projects: fresh-chat continuity, authority boundaries, freeze integrity, test discrimination, Human Brief cognitive load, and repeated-review/rework reduction.

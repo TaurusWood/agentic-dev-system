@@ -1,5 +1,7 @@
 # Freeze and Output Contract
 
+This file is the canonical runtime source for freeze establishment, freeze integrity, freeze breaks, and output profiles.
+
 ## Freeze levels
 
 ### PRODUCT FREEZE
@@ -12,6 +14,46 @@ Approved Technical Design, module boundaries, public contracts, terminology, and
 Accepted test contract is read-only for Coding.
 
 Freeze means downstream read-only by default, not immutable forever.
+
+## Establishing a freeze
+
+A freeze is established only when all of the following are true:
+
+1. the owning stage's required review/approval is complete;
+2. the frozen artifact is present in a committed Git revision;
+3. the frozen paths and revision are recorded in the task packet or Agent Handoff;
+4. any stage-specific evidence required for the freeze is recorded.
+
+A phrase such as `ready to freeze`, `proposed freeze`, or an uncommitted working-tree state is not an established freeze.
+
+For TEST FREEZE on a new behavior or bug regression, stage-specific evidence normally includes baseline sensitivity:
+
+```yaml
+test_evidence:
+  baseline_revision: <sha>
+  baseline_result: RED # RED | GREEN | NOT_APPLICABLE
+  expected_failure:
+    - <semantic reason the old/broken baseline fails>
+  justification_if_green: <required when baseline_result is GREEN>
+```
+
+The objective is not ceremonial RED. It is evidence that the test contract can distinguish the target behavior from the declared baseline when such a distinction should exist.
+
+## Downstream freeze-integrity preflight
+
+Before a downstream stage writes, it must verify every consumed freeze against the current repository state.
+
+Conceptually:
+
+```text
+git diff <product-freeze-sha> -- <product paths>
+git diff <design-freeze-sha>  -- <design paths>
+git diff <test-freeze-sha>    -- <test paths>
+```
+
+Expected result for frozen paths is no unauthorized semantic change. Also verify that declared task dependencies and `base_revision` still identify the intended execution baseline.
+
+If the preflight finds a legitimate newer re-freeze, refresh the task packet/handoff before work. If it finds an unauthorized or unexplained change, stop; do not silently choose the current file or the old revision.
 
 ## Freeze Break Request
 
@@ -29,7 +71,7 @@ User-visible behavior changed: YES / NO
 Affected modules/tests:
 ```
 
-The owning upstream stage reviews the issue, updates its artifact if approved, establishes a new freeze, then downstream work resumes.
+The owning upstream stage reviews the issue, updates its artifact if approved, establishes a new freeze, updates affected task packets, then downstream work resumes.
 
 Do not let Coding decide that a failing frozen test is wrong and edit it directly.
 
@@ -64,6 +106,8 @@ When another stage/chat/agent must continue, prefer structured metadata:
 ```yaml
 task_id: <id>
 status: <status>
+repository: <owner/name>
+branch: <branch>
 base_revision: <sha>
 result_revision: <sha>
 authoritative_inputs:
@@ -74,6 +118,9 @@ freeze_revisions:
   product: <sha-or-null>
   design: <sha-or-null>
   test: <sha-or-null>
+freeze_integrity:
+  result: <PASS|FAIL|NOT_RUN>
+  checked_at_revision: <sha-or-null>
 scope:
   allowed: []
   forbidden: []
@@ -89,9 +136,10 @@ Do not copy large upstream documents into the handoff. Point to repository paths
 ## Output precedence
 
 1. explicit user/task request;
-2. current stage prompt;
-3. project-local `AGENTS.md` refinement;
-4. skill default.
+2. canonical stage/freeze contract;
+3. project-local `AGENTS.md` refinement that does not contradict the canonical contract;
+4. launch-prompt formatting preferences;
+5. skill default.
 
 Skill default:
 

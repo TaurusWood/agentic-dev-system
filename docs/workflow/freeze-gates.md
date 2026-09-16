@@ -1,106 +1,64 @@
-# Freeze Gates
+# Freeze Gates — Explanation
+
+> **Normative freeze semantics:** [`../../skills/agentic-development/references/freeze-output.md`](../../skills/agentic-development/references/freeze-output.md). This document explains the intent for contributors.
 
 ## 1. Why freezes exist
 
-A downstream agent must not be allowed to make upstream requirements easier merely to make its own stage pass.
-
-Without explicit freeze semantics, a coding loop can converge to green tests while drifting away from product intent.
+A downstream agent must not be able to make an upstream requirement easier merely to make its own stage pass. Without a freeze boundary, code and tests can converge to green while drifting away from product intent.
 
 ## 2. Freeze levels
 
-### PRODUCT FREEZE
-The PRD / approved observable behavior is frozen for downstream design work.
+- **PRODUCT FREEZE** — approved observable behavior, scope, and product boundaries.
+- **DESIGN FREEZE** — approved Technical Design, module boundaries, public contracts, terminology, and task slicing.
+- **TEST FREEZE** — accepted test contract for a bounded task.
 
-### DESIGN FREEZE
-Technical Design, module boundaries, public contracts, and task slicing are frozen for test and coding work.
+Freeze means downstream read-only by default, not immutable forever.
 
-### TEST FREEZE
-The accepted test contract for a module is frozen for implementation.
+## 3. A freeze is a versioned fact
 
-Freeze means read-only by default, not “physically impossible to change forever.”
+A freeze is established only after:
 
-## 3. Freeze Break Request
+1. required owning-stage review/approval;
+2. the artifact exists in a committed Git revision;
+3. frozen paths + revision are recorded in the Task Packet/Handoff;
+4. stage-specific evidence is present.
 
-If a downstream agent finds that a frozen artifact is invalid, contradictory, or impossible to implement correctly, it must stop the affected task and produce a short structured request.
+`ready to freeze`, `proposed freeze`, or an uncommitted working tree is not an established freeze.
 
-Required fields:
+## 4. TEST FREEZE sensitivity evidence
 
-```text
-Artifact:
-Frozen revision:
-Observed conflict:
-Why downstream implementation cannot safely continue:
-Proposed change:
-User-visible behavior changed: YES / NO
-Affected tests/modules:
+For a new behavior or bug regression expected to be absent/broken at the declared baseline, TEST FREEZE normally records:
+
+```yaml
+test_evidence:
+  baseline_revision: abc123
+  baseline_result: RED
+  expected_failure:
+    - target behavior is absent at baseline
 ```
 
-A freeze break must be reviewed at the stage that owns the artifact.
+If the relevant test is already green, record a justification rather than forcing an artificial failure. The purpose is to show that the test contract is discriminating where it should be.
 
-Examples:
+## 5. Downstream preflight
 
-- Wrong product behavior → reopen PRD/Product review.
-- Invalid module contract → reopen Technical Design.
-- Broken fixture or incorrect assertion → reopen Test stage.
-
-After approval:
-
-1. modify the owning artifact;
-2. re-run its review;
-3. create a new freeze revision;
-4. regenerate/update downstream task packets;
-5. resume implementation.
-
-## 4. Implementation rule
-
-After TEST FREEZE, an implementation agent may not silently modify:
-
-- PRD
-- frozen Technical Design/task contract
-- frozen tests
-
-A future executable harness should enforce this mechanically through Git diff/write-scope checks rather than relying only on prompt instructions.
-
-Conceptual check:
+Before writing, downstream stages verify consumed frozen paths against their freeze revisions, conceptually:
 
 ```text
-git diff <product-freeze-sha> -- <product artifacts>
-git diff <design-freeze-sha>  -- <design artifacts>
+git diff <product-freeze-sha> -- <product paths>
+git diff <design-freeze-sha>  -- <design paths>
 git diff <test-freeze-sha>    -- <test paths>
 ```
 
-Unexpected changes fail the gate.
+They also verify the Task Packet's `base_revision` and dependencies still identify the intended execution baseline.
 
-## 5. What does not require a product freeze break
+A legitimate newer re-freeze requires a refreshed packet/handoff. An unexplained mismatch stops execution.
 
-Not every test edit changes product truth.
+## 6. Freeze Break
 
-Examples that may remain inside the Test stage before TEST FREEZE:
+If a downstream stage discovers a frozen artifact is wrong, contradictory, stale, or unsafe, it returns the canonical `FREEZE_BREAK_REQUIRED` structure to the owning Product/Design/Test stage.
 
-- deterministic fixture correction
-- test-data ordering correction
-- eliminating a flaky wait
-- correcting an invalid path used by the test
+After approval, the owner updates the artifact, repeats required review, establishes a new committed freeze, updates affected packets, and downstream execution resumes.
 
-The distinction is authority and timing:
+## 7. Future enforcement
 
-- before TEST FREEZE, test maintainers can correct tests within frozen upstream contracts;
-- after TEST FREEZE, coding agents cannot make that decision themselves.
-
-## 6. Human gate design
-
-Human approval should be proportional to the semantic risk.
-
-For user-visible behavior, show a compact observable delta:
-
-```text
-Before:
-Build → click A → station focus → “plan from here” → click B
-
-After:
-Build → click A → A becomes origin → click B
-
-User-visible behavior changed: YES
-```
-
-Do not require the human to approve implementation details that can be derived mechanically from already approved behavior.
+A future harness may enforce these checks mechanically through write-scope and Git-diff gates. The current protocol does not wait for that infrastructure: the same preflight is already required in manual multi-chat execution.

@@ -1,89 +1,25 @@
-# Module Review Prompt Template
+# Module Review Launch Prompt
 
-Follow the common execution contract in `docs/protocols/execution-contract.md`.
-
-## Role Contract
-
-**Owns:** independent conformance review for one completed module task.
-
-**May change:** review findings only, unless a separate approved repair task is explicitly assigned.
-
-**Must preserve:** frozen product/design/test contracts and declared module boundaries.
-
-**Must not do:** redesign the product, silently relax tests, approve undocumented scope expansion, or turn style preference into a blocker.
-
-**Must stop when:** the upstream contract itself appears wrong, an authoritative standard conflicts with the design, or correctness depends on an unapproved freeze break.
+Canonical authority: use the installed `agentic-development` skill. Module CR authority comes from `references/stage-contracts.md`; freeze/output semantics come from `references/freeze-output.md`. This file is a launch adapter, not an independent Role Contract.
 
 ## Goal
 
-Determine whether the implementation faithfully satisfies the frozen contracts and remains technically sound within its declared module boundary and applicable engineering standards.
+Independently determine whether one completed module task conforms to its frozen Product/Design/Test contracts and declared engineering boundaries.
 
-## Inputs
+## Required inputs
 
-- PRODUCT FREEZE revision
-- DESIGN FREEZE revision
-- TEST FREEZE revision
-- module task packet
-- applicable universal and project-local standards referenced by the task packet
-- approved exceptions, if any
-- implementation diff / result revision
-- validation output
+- repository / branch / Task Packet;
+- PRODUCT, DESIGN, and TEST FREEZE revisions;
+- implementation base/result revisions and diff;
+- applicable standards/exceptions;
+- validation output and test sensitivity evidence.
 
-## Review order
+## Review focus
 
-1. Contract conformance
-2. Scope and ownership
-3. Test integrity
-4. Correctness and failure semantics
-5. Module boundaries and dependency direction
-6. Implementation quality
-7. Regression risk
-8. Complexity / unnecessary abstraction
+Review in this order: contract conformance, freeze integrity, scope/ownership, test integrity and discriminating evidence, correctness/failure semantics, module/dependency boundaries, implementation quality, regression risk, unnecessary complexity.
 
-## Required checks
+Every finding must identify concrete evidence, reachable impact, and required fix/escalation. Do not create blockers from style preference alone.
 
-- No frozen artifact was silently changed.
-- Tests were not weakened to match implementation.
-- Product-visible behavior matches the PRD.
-- Technical invariants and module boundaries are preserved.
-- Changed state/rules still have a clear authoritative owner.
-- Shared abstractions are justified by a stable shared responsibility rather than hypothetical reuse.
-- Dependency direction does not make shared/foundational code depend on consumer-private implementation without an explicit design.
-- Expected rejection, invariant failure, dependency failure, and fallback are not silently collapsed into success-shaped defaults.
-- Changes outside declared write scope are justified and approved.
-- New complexity is necessary for the task.
-- Validation evidence is sufficient for the risk changed.
-- Any deviation from an applicable standard is explicitly approved rather than inferred by the reviewer.
+## Output
 
-## Boundary rule
-
-Do not redesign the product during Module CR. If the upstream contract itself appears wrong, or if an authoritative standard conflicts with the frozen design without an approved exception, request a freeze break instead of approving an alternate interpretation.
-
-Do not create findings from style preference alone. A standards finding must identify the violated invariant, concrete evidence in the change set, and reachable impact.
-
-## Done / output
-
-### Human Brief
-
-- verdict: PASS / PASS_WITH_NOTES / CHANGES_REQUIRED / FREEZE_BREAK_REQUIRED
-- material impact/risk only
-- required human decision, if any
-- next step
-
-### Agent Handoff
-
-Return findings ordered by severity, each with:
-
-- evidence
-- impact
-- required fix or escalation
-
-Then include:
-
-- verdict
-- reviewed revision
-- validation status
-- blockers / freeze-break requirements
-- next stage or return target
-
-Use Human Discussion only when a material design/contract decision must be reopened or explicitly requested.
+Return the canonical Human Brief and Agent Handoff with severity-ordered findings and canonical verdict: `PASS`, `PASS_WITH_NOTES`, `CHANGES_REQUIRED`, or `FREEZE_BREAK_REQUIRED`.

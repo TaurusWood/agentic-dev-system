@@ -1,12 +1,16 @@
 # Task Packet Contract
 
+> Runtime authority for stage/freeze semantics lives in `skills/agentic-development/references/`. This document defines the repository task-packet data contract and ownership model.
+
 ## 1. Purpose
 
-A Task Packet is the structured handoff between the Control Plane and an execution agent.
+A Task Packet is the structured handoff between coordination and an execution agent.
 
-It should be small enough to inspect, stable enough to version, and explicit enough that a new chat can start without relying on prior conversation history.
+It should be small enough to inspect, stable enough to version, and explicit enough that a fresh chat can start without relying on prior conversation history.
 
 ## 2. Minimum schema
+
+Use [`../../templates/task-packet.yaml`](../../templates/task-packet.yaml) as the concrete template. Minimum information includes:
 
 ```yaml
 task: BUILD-04
@@ -14,62 +18,67 @@ title: Direct city-to-city build planning
 phase: implementation
 status: test-frozen
 
+repository:
+  full_name: TaurusWood/pocket-railway
+  branch: fix/m1-build
+base_revision: abc123
+
 product_contract:
   path: docs/releases/m1/prd.md
-  revision: abc123
+  revision: def456
 
 technical_contract:
   path: docs/releases/m1/technical-design.md
   section: BUILD-04
-  revision: def456
+  revision: ghi789
 
 test_contract:
-  revision: ghi789
+  revision: jkl012
   paths:
     - tests/smoke/build_planning_smoke.gd
-
-applicable_standards:
-  - docs/standards/engineering-principles.md
-  - docs/standards/module-design.md
-  - project:AGENTS.md
-
-approved_exceptions: []
-
-depends_on:
-  - BUILD-02
+  evidence:
+    baseline_revision: abc123
+    baseline_result: RED
+    expected_failure:
+      - direct city-to-city planning is not implemented at baseline
+    justification_if_green: ""
 
 write_scope:
   - scenes/map/**
-  - scenes/ui/coordinators/**
-
 forbidden_scope:
   - docs/**
   - tests/**
 
 validation:
   - ./scripts/run_tests.mjs build_planning
-
-stop_conditions:
-  - frozen test contradicts product contract
-  - external module contract must change
-  - required dependency is not complete
-  - applicable standards conflict without an approved exception
-
-handoff:
-  on_success: module-review
-  on_freeze_break: owning-stage
 ```
 
-## 3. Design rules
+## 3. Ownership
+
+Task Packet fields are not all owned by the coordinator.
+
+- **Technical Design** creates the initial packet and owns task goal, repository/base revision, technical scope, dependencies, applicable standards, validation expectations, and stop conditions until DESIGN FREEZE.
+- **Test** owns `test_contract` paths/revision/evidence until TEST FREEZE.
+- **Coordinator** may update execution metadata such as phase, status, completed/result revisions, and routing. It must not silently rewrite frozen Product/Design/Test contract fields.
+- **Coding / Review / Integration** consume the packet. If a contract field is stale or wrong, they escalate to its owning stage.
+
+This prevents the Task Packet itself from becoming an unowned second specification.
+
+## 4. Design rules
 
 ### Reference, do not duplicate
 The packet points to authoritative artifacts and revisions. It should not paste entire PRDs, designs, or standards.
 
+### Pin the execution baseline
+`repository`, `branch`, and `base_revision` identify the state against which the bounded task was prepared. A fresh agent must not assume that arbitrary current HEAD is equivalent.
+
+A later HEAD is acceptable only when the declared dependencies/frozen paths remain valid. If baseline drift materially affects correctness, refresh the packet rather than guessing.
+
 ### Declare applicable standards
-The packet should identify the smallest relevant set of universal and project-local standards needed for the task. Do not require every execution agent to read every standard when the task does not touch that concern.
+Identify the smallest relevant set of universal and project-local standards needed for the task. Do not require every execution agent to read every standard.
 
 ### Declare exceptions explicitly
-If the frozen technical design intentionally deviates from an applicable standard, reference the approved exception. Task packets do not create exceptions by themselves.
+If frozen Technical Design intentionally deviates from an applicable standard, reference the approved exception. Task packets do not create exceptions by themselves.
 
 ### Declare permissions
 Write scope is part of task correctness, not a convenience hint.
@@ -77,18 +86,18 @@ Write scope is part of task correctness, not a convenience hint.
 ### Declare frozen revisions
 A task without known upstream revisions is vulnerable to moving-target drift.
 
-### Declare dependencies
-The agent should know whether another module must be complete before it can safely proceed.
+### Declare test sensitivity evidence
+For new behavior or bug regression expected to fail at baseline, TEST FREEZE should record that the relevant test failed at `baseline_revision` for the expected semantic reason. If it was already green, record a justification instead of manufacturing RED.
 
-### Declare validation
-“Looks correct” is not a done condition.
+### Declare dependencies and validation
+“Looks correct” is not a done condition. Dependencies and validation commands must be explicit.
 
 ### Declare stop conditions
-A task packet must tell the agent when independent reasoning is no longer authorized.
+The packet must tell the agent when independent reasoning is no longer authorized.
 
-## 4. Execution result
+## 5. Execution result
 
-Agents should return a compact structured result that the orchestrator can consume:
+Agents should return a compact structured result:
 
 ```yaml
 status: DONE # DONE | BLOCKED | FAILED | FREEZE_BREAK_REQUIRED | DEPENDENCY_REQUIRED
@@ -97,6 +106,9 @@ base_revision: ...
 result_revision: ...
 changed_paths:
   - ...
+freeze_integrity:
+  result: PASS
+  checked_at_revision: ...
 validation:
   - command: ...
     result: PASS
@@ -104,19 +116,8 @@ notes:
   - ...
 ```
 
-For `FREEZE_BREAK_REQUIRED`, include the Freeze Break Request defined in the workflow.
+For `FREEZE_BREAK_REQUIRED`, use the canonical Freeze Break Request in the installed skill.
 
-## 5. Future automation
+## 6. Future automation
 
-The task packet is intended to become machine-readable input to:
-
-- prompt generation
-- worktree/branch creation
-- standards selection
-- write-scope enforcement
-- dependency scheduling
-- validation execution
-- freeze-diff checks
-- review dispatch
-
-v0.1 defines the contract; it does not yet require a specific implementation language or orchestrator.
+The task packet may later become machine-readable input to prompt generation, worktree provisioning, write-scope enforcement, scheduling, validation, and freeze-diff checks. v0.1 does not require any of those mechanisms.
