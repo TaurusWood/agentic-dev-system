@@ -6,12 +6,39 @@ This repository defines a methodology for agentic software engineering. It treat
 
 The current objective is deliberately small: **make the workflow explicit, runnable, and testable on real projects before building orchestration infrastructure.** A human may manually open separate chats, or an agent runtime may delegate to sub-agents; both should follow the same repository contracts.
 
+## Install the runtime Skill
+
+The first runnable distribution is the `agentic-development` Agent Skill under [`skills/agentic-development/`](skills/agentic-development/).
+
+Install it into a local coding-agent environment with the Skills CLI:
+
+```bash
+npx skills add https://github.com/TaurusWood/agentic-dev-system --skill agentic-development
+```
+
+Then start a fresh session in the target project and invoke it naturally, for example:
+
+```text
+Use agentic-development to continue this bug-fix workflow.
+First inspect the repository and tell me which stage this task should enter.
+```
+
+or:
+
+```text
+Use agentic-development to generate the Coding-stage prompt for the current frozen module task.
+```
+
+The Skill does not require a project-specific profile file. It first reads the target repository's own `AGENTS.md` / equivalent instructions and relevant product/design/test/code artifacts. Sub-agent delegation is optional: when the runtime cannot create child agents or chats, the Skill finishes the current stage and can return a ready-to-paste next-stage prompt.
+
+The Skill follows the Agent Skills format (`SKILL.md` plus on-demand `references/`) so runtime context stays small until a particular stage needs more detail.
+
 ## Usage guides
 
 - [使用手册（中文）](docs/guides/usage.zh-CN.md)
 - [Usage Guide (English)](docs/guides/usage.en.md)
 
-If you want to apply the method to a real project, start with the usage guide rather than reading every protocol document first.
+If you want to understand or adapt the full methodology, start with the usage guide. If you only want to try it in a local coding agent, install the Skill first.
 
 ## Core lifecycle
 
@@ -69,7 +96,7 @@ current intent
 high-quality execution prompt
 ```
 
-Use [`prompts/prompt-generator.md`](prompts/prompt-generator.md) as a meta-prompt when you want an agent to compose the next task prompt.
+Use [`prompts/prompt-generator.md`](prompts/prompt-generator.md) as a meta-prompt when you want an agent to compose the next task prompt. The installed Skill contains the same composition semantics in `references/prompt-composition.md`.
 
 Open-ended natural language remains appropriate for uncertain work such as PRD, UX/UE, bug understanding, and architecture discussion. Once the target is stable, repeated execution work should increasingly use standardized prompts for Test, Coding, CR, Integration, Final CR, and other stable high-frequency stages.
 
@@ -118,7 +145,7 @@ They do **not** prescribe a universal directory structure or replace project-loc
 
 ## Lightweight learning loop
 
-The base prompts and protocols are expected to improve from real projects.
+The base prompts, Skill, and protocols are expected to improve from real projects.
 
 Do not add rules after every one-off failure. Promote a lesson only when it repeats or has high impact, is reusable, and the correction is smaller than the problem it prevents.
 
@@ -137,6 +164,11 @@ docs/
   task-packets/       Structured handoff contract
   decisions/          Architectural decisions and rationale
   roadmap.md          Validation focus and long-term direction
+
+skills/
+  agentic-development/
+    SKILL.md           Runtime router/controller
+    references/        On-demand workflow contracts
 
 templates/
   prd.md
@@ -157,22 +189,23 @@ prompts/
 
 ## Start here
 
-1. [`docs/guides/usage.zh-CN.md`](docs/guides/usage.zh-CN.md) / [`docs/guides/usage.en.md`](docs/guides/usage.en.md) — practical usage.
-2. [`docs/workflow/development-lifecycle.md`](docs/workflow/development-lifecycle.md) — current end-to-end workflow.
-3. [`docs/protocols/execution-contract.md`](docs/protocols/execution-contract.md) — stage roles and human/agent output contract.
-4. [`docs/workflow/freeze-gates.md`](docs/workflow/freeze-gates.md) — freeze semantics and safe freeze breaks.
-5. [`docs/prompts/prompt-generation.md`](docs/prompts/prompt-generation.md) — how task prompts are composed.
-6. [`docs/workflow/learning-loop.md`](docs/workflow/learning-loop.md) — how the methodology learns without becoming heavy.
-7. [`docs/task-packets/task-packet.md`](docs/task-packets/task-packet.md) — structured task handoff.
-8. [`docs/architecture/system-model.md`](docs/architecture/system-model.md) — truth, control, and execution boundaries.
-9. [`docs/standards/README.md`](docs/standards/README.md) — engineering baseline.
+1. [`skills/agentic-development/SKILL.md`](skills/agentic-development/SKILL.md) — installable runtime Skill.
+2. [`docs/guides/usage.zh-CN.md`](docs/guides/usage.zh-CN.md) / [`docs/guides/usage.en.md`](docs/guides/usage.en.md) — practical usage.
+3. [`docs/workflow/development-lifecycle.md`](docs/workflow/development-lifecycle.md) — current end-to-end workflow.
+4. [`docs/protocols/execution-contract.md`](docs/protocols/execution-contract.md) — stage roles and human/agent output contract.
+5. [`docs/workflow/freeze-gates.md`](docs/workflow/freeze-gates.md) — freeze semantics and safe freeze breaks.
+6. [`docs/prompts/prompt-generation.md`](docs/prompts/prompt-generation.md) — how task prompts are composed.
+7. [`docs/workflow/learning-loop.md`](docs/workflow/learning-loop.md) — how the methodology learns without becoming heavy.
+8. [`docs/task-packets/task-packet.md`](docs/task-packets/task-packet.md) — structured task handoff.
+9. [`docs/architecture/system-model.md`](docs/architecture/system-model.md) — truth, control, and execution boundaries.
+10. [`docs/standards/README.md`](docs/standards/README.md) — engineering baseline.
 
 ## Current focus and long-term direction
 
 The project is currently in **methodology validation**, not platform construction.
 
-The immediate next step is to run this protocol on real development work, observe where agents still drift or humans still receive too much information, and refine the documents/prompts from evidence.
+The immediate next step is to install the Skill in real projects, observe where stage routing/prompts still drift or humans still receive too much information, and refine the method from evidence.
 
-A **multi-agent development system remains a long-term target**. If the method proves stable, this protocol can later act as the contract layer for richer orchestration—implemented here or integrated with systems such as GitHub Spec Kit or future coding-agent runtimes.
+A **multi-agent development system remains a long-term target**. If the method proves stable, this protocol and Skill can later act as the contract layer for richer orchestration—implemented here or integrated with systems such as GitHub Spec Kit or future coding-agent runtimes.
 
 Deferred implementation mechanisms such as a DAG engine, CLI, queue, scheduler, automatic worktrees, agent RPC, persistent orchestration state, and automatic dispatch are intentionally not current requirements. See [`docs/roadmap.md`](docs/roadmap.md).
