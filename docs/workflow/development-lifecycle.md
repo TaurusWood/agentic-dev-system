@@ -70,4 +70,4 @@ Final CR verifies the integrated user journey, PRD coverage, cross-module contra
 
 ## 9. Human/agent split
 
-Default human output is the minimum information needed for judgment. Technical continuity is preserved through versioned repository artifacts and structured Agent Handoff rather than long chat summaries. When runtime-native delegation exists, routine stage completion should trigger the next eligible stage automatically; human attention is reserved for material decisions, Freeze Breaks, unresolved blockers, and focused final acceptance.
+Technical continuity is preserved through versioned repository artifacts and structured Agent Handoff rather than long chat summaries. When runtime-native delegation exists, routine stage completion is an internal transition and should trigger the next eligible stage automatically without a Human Brief. Human-facing output occurs when the workflow completes or returns control for a material decision, Freeze Break, blocker/delegation failure, or focused final acceptance.

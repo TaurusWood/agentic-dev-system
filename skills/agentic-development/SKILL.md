@@ -1,10 +1,10 @@
 ---
 name: agentic-development
-description: Use for non-trivial software development work that benefits from staged product/design/test/coding/review flow, including feature work, UI/UX changes, bug fixes, refactors, E2E findings, prompt generation for the next development stage, freeze handling, and multi-chat or sub-agent handoff.
+description: Use for non-trivial software development work that benefits from staged product/design/test/coding/review flow, including feature work, UI/UX changes, bug fixes, refactors, E2E findings, freeze handling, runtime-native delegation, and manual fallback handoff.
 license: MIT
-compatibility: Requires access to the target project repository. Sub-agent or multi-thread delegation is optional; manual multi-chat execution is fully supported.
+compatibility: Requires access to the target project repository. Runtime-native isolated delegation is preferred when available; manual multi-chat execution is the supported fallback.
 metadata:
-  version: "0.2.0"
+  version: "0.2.1"
   source: "TaurusWood/agentic-dev-system"
 ---
 
@@ -37,9 +37,12 @@ Repository code and versioned project documents are authoritative. Chat history 
 4. Classify the task entry path and current stage using `references/workflow.md`.
 5. Load `references/stage-contracts.md` for the selected stage.
 6. If any upstream freeze is consumed, load `references/freeze-output.md` and perform its freeze-integrity preflight before writing.
-7. Execute the stage within its authority boundary.
-8. Return a concise Human Brief and, when another stage must continue, an Agent Handoff.
-9. If no canonical stop condition requires human judgment and the runtime supports isolated delegation, continue automatically to the next eligible stage per `references/workflow.md`. A ready-to-use next-stage prompt is the fallback when delegation is unavailable, not the normal stopping point.
+7. Determine execution mode before starting stage work:
+   - **ORCHESTRATED** when the runtime can create the required isolated execution contexts and the user has not requested manual control;
+   - **MANUAL** otherwise.
+8. Execute the stage within its authority boundary.
+9. In ORCHESTRATED mode, treat successful stage completion as an internal state transition: produce/consume the Agent Handoff internally and immediately continue to the next eligible stage. Do not return control to the human merely because a stage or child agent finished.
+10. Return a Human Brief only when `references/workflow.md` says the orchestrator must return control to the human. In MANUAL mode, also provide the Agent Handoff and ready-to-use next-stage prompt when continuation is required.
 
 Do not require a project profile file. Infer the project map from existing repository instructions and structure unless the project explicitly provides one.
 
@@ -80,7 +83,7 @@ Critical rules:
 
 Raise `FREEZE_BREAK_REQUIRED` to the owning stage when a frozen contract is invalid instead of repairing it downstream.
 
-Default human output is Human Brief. Use Human Discussion only for material decisions, real trade-offs, Freeze Break approval, or when explicitly requested.
+Human Brief is the default projection **when control returns to the human**. It is not a mandatory per-stage output in ORCHESTRATED mode. Use Human Discussion only for material decisions, real trade-offs, Freeze Break approval, or when explicitly requested.
 
 ## Prompt generation
 
@@ -101,11 +104,12 @@ When the runtime supports isolated sub-agents/threads, default to runtime-native
 - the coordinator continues across successful routine stage transitions without waiting for the human to open a new chat;
 - each child reads repository truth directly and verifies declared base/freeze revisions before writing;
 - compatible Test tasks may be batched in one Test execution context when `references/workflow.md` batching conditions hold; each task still keeps independent Task Packet fields, evidence, and TEST FREEZE;
-- Coding and Module CR must use separate isolated execution contexts; do not resume or reuse the Coding agent's reasoning transcript as independent review;
+- Coding and Module CR must use separate isolated **reasoning contexts**; do not resume or reuse the Coding agent's reasoning transcript as independent review;
+- reasoning/context isolation and filesystem/worktree isolation are separate concerns; a fresh sub-agent may use a shared workspace when serialized access is safe, while worktrees are used only when repository state and concurrency make them appropriate;
 - independent ready tasks may run in parallel only when declared dependencies and write scopes permit it;
 - dependent tasks remain ordered by the dependency graph.
 
-Stop automatic continuation only when a canonical stage/Freeze stop condition is reached, a material human decision or Freeze Break approval is required, an unresolved blocker prevents safe progress, or focused final acceptance is required.
+Stop automatic continuation only for the canonical orchestrator stop reasons defined in `references/workflow.md`. Successful stage completion is never one of those reasons.
 
 If the runtime cannot delegate safely, do not pretend it can. Finish the current stage and provide the canonical Agent Handoff plus a ready-to-paste next-stage prompt.
 

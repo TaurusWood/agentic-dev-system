@@ -85,7 +85,9 @@ Test 阶段只拥有其中 `test_contract` 和 test evidence，直到 TEST FREEZ
 
 Runtime 已提供隔离 Sub-agent / Thread 时，默认由一个 Coordinator 在常规阶段之间自动续跑。兼容的 Test Task 可以在同一个 Test 上下文中批处理，但每个 Task 仍独立维护 Task Packet、test evidence 和 TEST FREEZE revision。
 
-Coding 与 Module CR 必须使用不同的执行上下文；不要通过 resume/continue 复用 Coding Agent 的推理 transcript 来充当独立审查。没有依赖关系的 Ready Task 可以并行；存在依赖的 Task 按 dependency graph 分波次执行。
+Coding 与 Module CR 必须使用不同的**推理上下文**；不要通过 resume/continue 复用 Coding Agent 的推理 transcript 来充当独立审查。推理/Context 隔离与 filesystem/worktree 隔离是两件事：串行执行且需要看到未提交状态时，可以让新的 Sub-agent 使用 shared workspace；只有仓库状态和并发需求适合时才使用 worktree。
+
+没有依赖关系的 Ready Task 可以并行；存在依赖的 Task 按 dependency graph 分波次执行。普通 Stage 完成属于内部状态迁移，不应把控制权交还给人。
 
 Runtime 无法安全 delegation 时，再降级为人工方式：
 
@@ -122,7 +124,9 @@ Prompt Generator 当前仍然是 composition practice：
 
 ## 9. 输出
 
-默认给人的是 Human Brief：结论、能力/边界、material risk、需要人工决策的事项、下一步。
+在 Orchestrated Mode 中，中间 Stage 只把 Agent Handoff 交给 Coordinator 并继续内部执行，不常规输出 Human Brief。
+
+Coordinator 只有在以下 canonical stop reason 出现时才把控制权交还给人并输出 Human Brief：`COMPLETED`、`HUMAN_DECISION_REQUIRED`、`FREEZE_BREAK_REQUIRED`、`BLOCKED`、`DELEGATION_UNAVAILABLE`、`FINAL_ACCEPTANCE_REQUIRED`。
 
 只有产品/UX/架构 trade-off、Freeze Break、证据不足或用户主动要求时，展开 Human Discussion。
 

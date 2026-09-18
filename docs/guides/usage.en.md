@@ -70,9 +70,11 @@ Test owns only the packet's `test_contract` and test-evidence fields before TEST
 
 ## 7. Runtime-native orchestration and manual fallback
 
-If the runtime provides isolated sub-agents/threads, use one coordinator to continue automatically across routine stages. Compatible Test tasks may be batched in one Test context while preserving separate Task Packets, evidence, and TEST FREEZE revisions. Coding and Module CR use separate execution contexts; do not resume or reuse the Coding transcript as the independent review context.
+If the runtime provides isolated sub-agents/threads, use one coordinator to continue automatically across routine stages. Compatible Test tasks may be batched in one Test context while preserving separate Task Packets, evidence, and TEST FREEZE revisions. Coding and Module CR use separate reasoning contexts; do not resume or reuse the Coding transcript as the independent review context.
 
-Independent ready tasks may run in parallel. Dependent tasks remain ordered by the dependency graph.
+Reasoning/context isolation does not imply a separate worktree. Shared workspace is valid for serialized agents when required state is uncommitted; use worktree/filesystem isolation only when repository state and concurrency require it.
+
+Independent ready tasks may run in parallel. Dependent tasks remain ordered by the dependency graph. A routine stage completion is internal and does not return control to the human.
 
 When delegation is unavailable, use the same protocol manually:
 
@@ -107,7 +109,9 @@ Root prompt files add launch shape only; they do not own Role or Freeze semantic
 
 ## 9. Outputs
 
-Human Brief is the default: conclusion, capability/boundary, material risk, required human decision, next step.
+In orchestrated mode, intermediate stages return Agent Handoff to the coordinator and continue internally. They do not emit a routine Human Brief.
+
+The coordinator returns a Human Brief only with one canonical stop reason: `COMPLETED`, `HUMAN_DECISION_REQUIRED`, `FREEZE_BREAK_REQUIRED`, `BLOCKED`, `DELEGATION_UNAVAILABLE`, or `FINAL_ACCEPTANCE_REQUIRED`.
 
 Human Discussion is reserved for material product/UX/architecture trade-offs, Freeze Breaks, insufficient evidence, or explicit requests.
 

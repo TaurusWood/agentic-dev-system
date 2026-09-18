@@ -72,6 +72,8 @@ Short-lived chats or agents that execute one bounded role:
 
 The number of chats is an implementation detail. A single runtime with isolated sub-agents and a human manually opening multiple chats are both valid executions of the same protocol. When native isolation exists, automatic delegation is preferred for routine stages. Coding and independent CR should not reuse the same reasoning context.
 
+Reasoning/context isolation is distinct from filesystem/worktree isolation. A fresh context can operate on the same workspace when serialized access is safe or required to see uncommitted state. Worktrees are used for filesystem isolation/concurrency when appropriate; they are not the definition of agent independence.
+
 ## 4. Communication model
 
 Agents should exchange project truth through the repository rather than free-form retellings.
@@ -111,7 +113,7 @@ Human review should be concentrated where judgment cannot be delegated safely:
 
 Humans should not be forced to reconstruct large state machines or implementation detail from long prose merely to approve a product behavior.
 
-The default human-facing projection should therefore be concise. Detailed discussion is reserved for genuine decisions, unresolved trade-offs, or explicit requests.
+The default human-facing projection should therefore be concise and event-driven. In orchestrated mode, routine stage completion remains internal; a Human Brief appears only when the coordinator returns control for completion, a material decision, a freeze break, a blocker/delegation failure, or focused final acceptance. Detailed discussion is reserved for genuine decisions, unresolved trade-offs, or explicit requests.
 
 ## 6. Prompt position
 

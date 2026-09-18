@@ -114,8 +114,8 @@ Stop instead of guessing when:
 - the task packet/base revision is stale in a correctness-relevant way
 
 Output:
-- Human Brief
-- Agent Handoff when another stage must continue
+- Agent Handoff for coordinator/downstream continuation
+- Human Brief only when returning control to the human under a canonical orchestrator stop reason
 
 Done when:
 - canonical stage done conditions plus <task-specific evidence>
@@ -139,7 +139,7 @@ Rule of thumb:
 
 ## Delegated continuation
 
-When the runtime can create the isolated execution context required by `workflow.md`, a standardized execution prompt is primarily a delegation payload, not a mandatory human handoff. The coordinator should launch the next eligible bounded stage automatically unless a canonical stop condition requires human judgment.
+When the runtime can create the isolated reasoning context required by `workflow.md`, a standardized execution prompt is primarily a delegation payload, not a mandatory human handoff. The coordinator should launch the next eligible bounded stage automatically unless a canonical orchestrator stop reason requires control to return to the human.
 
 Prompt composition does not decide whether tasks may be batched, parallelized, or reviewed in the same context; those execution semantics come from `workflow.md`.
 

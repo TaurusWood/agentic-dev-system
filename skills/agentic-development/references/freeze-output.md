@@ -75,10 +75,13 @@ The owning upstream stage reviews the issue, updates its artifact if approved, e
 
 Do not let Coding decide that a failing frozen test is wrong and edit it directly.
 
-## Human Brief — default human output
+## Human Brief — when control returns to the human
 
-Return only what is needed for human judgment:
+In ORCHESTRATED mode, do not emit a Human Brief for routine successful stage completion. Intermediate stages return Agent Handoff to the coordinator, which continues internally.
 
+When `workflow.md` requires control to return to the human, return only what is needed for judgment:
+
+- **Stop reason** — one canonical orchestrator stop reason from `workflow.md`;
 - **Conclusion** — done/pass/fail/blocked/main decision.
 - **Capability / boundary** — what was completed and what was not.
 - **Impact / risk** — material consequences only.
@@ -101,7 +104,7 @@ Discussion may be detailed, but separate decisions from background.
 
 ## Agent Handoff
 
-When another stage/chat/agent must continue, prefer structured metadata:
+When another stage/chat/agent must continue, prefer structured metadata. In ORCHESTRATED mode this is normally an internal coordinator payload, not a reason to address or wait for the human:
 
 ```yaml
 task_id: <id>
@@ -143,8 +146,9 @@ Do not copy large upstream documents into the handoff. Point to repository paths
 
 Skill default:
 
-- human-facing -> Human Brief;
-- downstream continuation -> Agent Handoff;
+- ORCHESTRATED intermediate continuation -> Agent Handoff consumed internally; no Human Brief;
+- return of control to human -> Human Brief with canonical stop reason;
+- MANUAL downstream continuation -> Human Brief + Agent Handoff, with a ready-to-use next-stage prompt when needed;
 - Human Discussion only when materially needed.
 
 ## Cognitive-load rule

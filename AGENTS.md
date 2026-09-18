@@ -25,7 +25,7 @@ Run `node scripts/check-protocol-drift.mjs` after changing prompts or protocol s
 6. Prefer explicit contracts, invariants, write scopes, validation commands, and stop conditions over broad prose instructions.
 7. Prompts are execution interfaces, not sources of truth. They should reference repository artifacts and Git revisions.
 8. Treat stage roles as authority boundaries, not role-play personas. Follow the canonical runtime references above.
-9. Default human-facing output to Human Brief. Use Human Discussion only for material decisions or explicit requests. Use structured Agent Handoff for downstream execution.
+9. Human Brief is the default only when control returns to the human. In orchestrated intermediate stages, use structured Agent Handoff internally and continue without routine human-facing output. Use Human Discussion only for material decisions or explicit requests.
 10. Distinguish runtime-native delegation from custom orchestration infrastructure. Real-project evidence may justify preferring native sub-agents without implying a requirement to build a scheduler, DAG engine, or agent platform.
 11. Do not create a second normative copy of workflow, stage, freeze, or prompt-composition semantics in `docs/` or `prompts/`.
 

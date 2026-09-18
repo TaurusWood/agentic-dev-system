@@ -78,7 +78,16 @@ A Test execution may batch multiple explicitly assigned tasks when all of the fo
 
 Do not batch merely to reduce chat count when it weakens those boundaries. Split the Test work when baseline assumptions, fixtures, module ownership, or dependency state differ materially.
 
-After TEST FREEZE, execute Coding and Module CR per bounded task. Coding and independent CR are distinct authority contexts: when the runtime supports isolation, Module CR must start in a fresh execution context and reconstruct the task from repository truth, frozen revisions, Task Packet, and implementation diff. Do not resume the Coding agent's reasoning transcript as the reviewer.
+After TEST FREEZE, execute Coding and Module CR per bounded task. Coding and independent CR are distinct authority contexts: when the runtime supports isolation, Module CR must start in a fresh reasoning context and reconstruct the task from repository truth, frozen revisions, Task Packet, and implementation diff. Do not resume the Coding agent's reasoning transcript as the reviewer.
+
+### Context isolation vs workspace isolation
+
+These are separate dimensions:
+
+- **Context isolation** means a fresh model/session reasoning state without the prior agent's private transcript. Coding -> Module CR requires this when the runtime supports it.
+- **Workspace isolation** means a separate worktree/filesystem view. It is optional and should be chosen from repository state, write overlap, and concurrency needs.
+
+A fresh Coding or CR sub-agent may use the shared workspace when execution is serialized and doing so is necessary to see valid uncommitted repository state. Do not create a worktree if it would hide required uncommitted artifacts. Conversely, parallel writers with overlapping or unsafe shared state require serialization or appropriate workspace isolation.
 
 Independent ready tasks may run in parallel when declared dependencies and write scopes permit it. Dependent tasks remain ordered. A typical execution wave is:
 
@@ -96,23 +105,28 @@ This replaces a mechanical requirement for either "one chat per stage per slice"
 
 ## Continuation policy
 
-When the current stage completes successfully and no canonical stop condition applies:
+When the current stage completes successfully:
 
-1. determine which task/stage is now eligible from Task Packets, dependency state, and revisions;
-2. if the runtime provides isolated sub-agents/threads, delegate the next bounded work automatically;
-3. continue through routine Test, Coding, Module CR, Integration, and Final CR transitions without waiting for the human merely to launch the next chat;
-4. if several independent tasks are ready, parallelize only when dependency and write-scope safety is explicit.
+1. record/consume the stage result and Agent Handoff as coordinator state;
+2. determine which task/stage is now eligible from Task Packets, dependency state, and revisions;
+3. if the runtime provides the required isolated reasoning contexts, delegate the next bounded work automatically;
+4. continue through routine Test, Coding, Module CR, Integration, and Final CR transitions without returning control to the human merely to launch the next stage;
+5. if several independent tasks are ready, parallelize only when dependency and write-scope safety is explicit.
 
-Automatic continuation stops when:
+In ORCHESTRATED mode, **stage completion is an internal transition, not a user-facing stop**. Agent Handoff is an internal delegation payload unless execution is returning to the human.
 
-- a material product/UX/architecture/risk decision requires human judgment;
-- a `FREEZE_BREAK_REQUIRED` needs approval or upstream rework;
-- an unresolved environment/dependency blocker prevents safe execution;
-- a stage would need to exceed its authority;
-- focused final human acceptance is required;
-- the runtime cannot provide the required delegation/isolation capability.
+The orchestrator returns control to the human only with one of these stop reasons:
 
-A stage ending is not itself a human stop condition.
+- `COMPLETED` — the requested iteration/workflow is complete and no further stage is required;
+- `HUMAN_DECISION_REQUIRED` — a material product/UX/architecture/risk choice needs human judgment;
+- `FREEZE_BREAK_REQUIRED` — a frozen contract must be reopened or approved upstream;
+- `BLOCKED` — an environment, dependency, permission, or evidence blocker prevents safe progress;
+- `DELEGATION_UNAVAILABLE` — the runtime cannot provide the isolation/delegation required for safe automatic continuation;
+- `FINAL_ACCEPTANCE_REQUIRED` — focused human acceptance is the next required gate.
+
+Do not invent routine additional stop reasons. Map stage-specific stop conditions onto the closest reason above and include the precise blocker/decision in the handoff.
+
+A stage or child agent finishing successfully is never itself a stop reason.
 
 ## Human vs runtime coordination
 
@@ -121,7 +135,8 @@ Delegated mode is preferred when the runtime supports isolated execution context
 - the parent/coordinator delegates bounded work using the same canonical stage contracts;
 - each child reads repository truth directly and verifies declared base/freeze revisions before writing;
 - the parent tracks readiness/status/revisions and does not replace repository truth with a prose retelling;
-- review independence is achieved through a fresh review context, not by asking the human to manually create a new chat.
+- review independence is achieved through a fresh reasoning context, not by asking the human to manually create a new chat;
+- intermediate Agent Handoffs are consumed internally; do not emit a Human Brief unless one of the canonical orchestrator stop reasons returns control to the human.
 
 Manual mode remains a compatibility fallback:
 

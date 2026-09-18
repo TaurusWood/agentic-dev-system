@@ -126,11 +126,11 @@ See [`docs/task-packets/task-packet.md`](docs/task-packets/task-packet.md).
 
 The protocol separates consumers:
 
-- **Human Brief** — default: conclusion, boundary, material risk, required decision, next step.
+- **Human Brief** — emitted when control returns to the human, with a canonical stop reason plus conclusion, boundary, material risk, required decision, and next step.
 - **Human Discussion** — only for genuine product/UX/architecture/risk trade-offs, Freeze Breaks, missing evidence, or explicit requests.
-- **Agent Handoff** — structured revisions, authoritative inputs, scope, freeze integrity, validation, blockers, and next stage.
+- **Agent Handoff** — structured revisions, authoritative inputs, scope, freeze integrity, validation, blockers, and next stage. In orchestrated mode it is normally consumed internally by the coordinator.
 
-The objective is not minimum words. It is minimum human cognitive load consistent with correct judgment.
+Routine successful stage completion does not produce a Human Brief in orchestrated mode. The objective is not minimum words; it is minimum human interruption consistent with correct judgment.
 
 ## Prompt composition
 
@@ -157,9 +157,11 @@ Open-ended discussion remains appropriate while uncertainty is the work. Once in
 
 Stage boundaries are authority boundaries, not mandatory user-managed chat boundaries.
 
-When the runtime provides isolated sub-agents/threads, a coordinator should keep moving through routine Test, Coding, Review, Integration, and Final Review work without asking the human to launch each stage. Compatible Test tasks may be prepared in one Test context, while each task still owns its own Task Packet fields, evidence, and TEST FREEZE. Coding and Module CR must use separate execution contexts so review does not inherit the implementation agent's reasoning transcript.
+When the runtime provides isolated sub-agents/threads, a coordinator should keep moving through routine Test, Coding, Review, Integration, and Final Review work without asking the human to launch each stage. Compatible Test tasks may be prepared in one Test context, while each task still owns its own Task Packet fields, evidence, and TEST FREEZE. Coding and Module CR must use separate reasoning contexts so review does not inherit the implementation agent's reasoning transcript.
 
-Automatic continuation stops for material human decisions, Freeze Break approval, unresolved blockers, or focused final acceptance. If the runtime cannot delegate safely, the protocol falls back to a structured handoff and ready-to-paste next-stage prompt.
+Reasoning/context isolation and filesystem/worktree isolation are independent. A fresh sub-agent may safely use the shared workspace when work is serialized and required state is uncommitted; worktrees are an optional concurrency/isolation mechanism, not a prerequisite for context independence.
+
+The coordinator returns control only for `COMPLETED`, `HUMAN_DECISION_REQUIRED`, `FREEZE_BREAK_REQUIRED`, `BLOCKED`, `DELEGATION_UNAVAILABLE`, or `FINAL_ACCEPTANCE_REQUIRED`. If the runtime cannot delegate safely, the protocol falls back to a structured handoff and ready-to-paste next-stage prompt.
 
 ## Current non-goals
 
