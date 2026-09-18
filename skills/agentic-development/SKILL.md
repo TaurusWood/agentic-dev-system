@@ -4,7 +4,7 @@ description: Use for non-trivial software development work that benefits from st
 license: MIT
 compatibility: Requires access to the target project repository. Runtime-native isolated delegation is preferred when available; manual multi-chat execution is the supported fallback.
 metadata:
-  version: "0.2.1"
+  version: "0.3.0"
   source: "TaurusWood/agentic-dev-system"
 ---
 
@@ -106,8 +106,13 @@ When the runtime supports isolated sub-agents/threads, default to runtime-native
 - compatible Test tasks may be batched in one Test execution context when `references/workflow.md` batching conditions hold; each task still keeps independent Task Packet fields, evidence, and TEST FREEZE;
 - Coding and Module CR must use separate isolated **reasoning contexts**; do not resume or reuse the Coding agent's reasoning transcript as independent review;
 - reasoning/context isolation and filesystem/worktree isolation are separate concerns; a fresh sub-agent may use a shared workspace when serialized access is safe, while worktrees are used only when repository state and concurrency make them appropriate;
-- independent ready tasks may run in parallel only when declared dependencies and write scopes permit it;
-- dependent tasks remain ordered by the dependency graph.
+- before selecting the next Coding task, compute the current `READY_SET` from dependency/review state;
+- when multiple READY tasks are independent and safe filesystem isolation is available, parallel Coding in separate worktrees is the default rather than an optional optimization;
+- serialize tasks when dependencies, overlapping write scopes, required shared uncommitted state, shared global resources, or insufficient isolation make parallel writes unsafe;
+- each parallel Coding task gets its own isolated reasoning context and, when fan-out is safe, its own worktree/branch from a committed baseline containing the required frozen artifacts;
+- each Coding result is reviewed by a fresh CR reasoning context against that task's result revision; CRs for independent tasks may run in parallel;
+- reviewed results are integrated before dependent tasks are unlocked;
+- do not spawn unbounded workers; respect runtime/resource concurrency limits without inventing a fixed universal cap.
 
 Stop automatic continuation only for the canonical orchestrator stop reasons defined in `references/workflow.md`. Successful stage completion is never one of those reasons.
 

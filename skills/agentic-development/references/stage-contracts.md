@@ -38,7 +38,7 @@ This file is the canonical runtime source for stage authority. Use these contrac
 - technical terminology and module ownership
 - public contracts and invariants
 - state/data flow and integration boundaries
-- agent-sized task slicing and dependencies
+- agent-sized task slicing, dependency edges, and write scopes precise enough for safe scheduling
 - creation of the initial task packet for each bounded module task
 
 **May change**
@@ -57,7 +57,7 @@ This file is the canonical runtime source for stage authority. Use these contrac
 - PRODUCT FREEZE integrity preflight fails
 
 **Done when**
-- module/task boundaries, dependencies, scope, contracts, and validation expectations are explicit
+- module/task boundaries, dependencies, write scopes, contracts, and validation expectations are explicit enough to determine READY tasks and obvious parallel conflicts
 - each implementation-bound task has an initial packet with repository identity, `base_revision`, product/design inputs, scope, dependencies, validation, and stop conditions
 - after required review, DESIGN FREEZE can be established at a committed revision
 
@@ -158,7 +158,7 @@ This file is the canonical runtime source for stage authority. Use these contrac
 ## Integration / Top-level Coding
 
 **Owns**
-- assembly of reviewed module work
+- assembly of reviewed module work, including parallel worktree result revisions
 - cross-module mechanical integration
 - integration validation and regression
 
@@ -177,7 +177,9 @@ This file is the canonical runtime source for stage authority. Use these contrac
 - required module revision/review evidence is missing
 
 **Done when**
-- reviewed modules are integrated in dependency order
+- reviewed module revisions are integrated in dependency order
+- mechanical merge conflicts are resolved without silently redefining module contracts
+- semantic cross-module conflicts are escalated instead of hidden during merge
 - full required regression passes or blockers are explicit
 
 ## Final CR

@@ -33,8 +33,8 @@ Requirement / finding
 → DESIGN FREEZE
 → Test preparation for one or more ready tasks
 → TEST FREEZE per task
-→ Coding → fresh Module CR in dependency waves
-→ Integration
+→ READY_SET → parallel Coding/worktrees → fresh Module CR per task
+→ Integration / next dependency wave
 → Final CR
 → Focused Human Acceptance
 ```
@@ -72,9 +72,11 @@ Test owns only the packet's `test_contract` and test-evidence fields before TEST
 
 If the runtime provides isolated sub-agents/threads, use one coordinator to continue automatically across routine stages. Compatible Test tasks may be batched in one Test context while preserving separate Task Packets, evidence, and TEST FREEZE revisions. Coding and Module CR use separate reasoning contexts; do not resume or reuse the Coding transcript as the independent review context.
 
-Reasoning/context isolation does not imply a separate worktree. Shared workspace is valid for serialized agents when required state is uncommitted; use worktree/filesystem isolation only when repository state and concurrency require it.
+Reasoning/context isolation does not imply a separate worktree. Shared workspace is valid for serialized agents when required state is uncommitted.
 
-Independent ready tasks may run in parallel. Dependent tasks remain ordered by the dependency graph. A routine stage completion is internal and does not return control to the human.
+Before Coding dispatch, the coordinator computes `READY_SET`. If multiple READY tasks are independent, use separate runtime-native worktrees and run them concurrently by default. Serialize only for dependency, write-scope overlap, required shared uncommitted state, global-resource conflict, insufficient isolation, or runtime/resource limits. Each parallel Coding result gets a fresh Module CR context; reviewed revisions are then integrated before the next READY_SET is computed.
+
+A routine stage completion is internal and does not return control to the human.
 
 When delegation is unavailable, use the same protocol manually:
 

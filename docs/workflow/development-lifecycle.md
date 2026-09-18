@@ -17,8 +17,8 @@ Technical Design + module slicing + initial Task Packets
     ↓ DESIGN FREEZE
 Test preparation for one or more ready bounded tasks
     ↓ TEST FREEZE per task
-Coding → fresh Module CR for ready tasks
-    ↓ dependency unlock / next execution wave
+READY_SET → parallel Coding/worktrees → fresh Module CR per task
+    ↓ Integration / dependency unlock / next execution wave
 Integration / top-level coding
     ↓
 Final CR
@@ -50,9 +50,11 @@ For new behavior or a bug regression expected to fail at the declared baseline, 
 
 TEST FREEZE requires the required independent test review plus a committed revision.
 
-## 6. Coding
+## 6. Coding and parallel waves
 
 Before writing, Coding verifies Product/Design/Test freeze integrity and the declared baseline/dependencies. It writes only production code inside the bounded scope.
+
+The coordinator computes the current `READY_SET`. Independent READY tasks should fan out to separate runtime-native worktrees and isolated Coding contexts when safe. Tasks remain serialized when they have dependency edges, competing write scopes, required shared uncommitted state, global-resource conflicts, insufficient isolation, or resource/runtime limits.
 
 A failing frozen test is not authority to edit the test. If the contract is wrong, Coding stops and requests a freeze break.
 

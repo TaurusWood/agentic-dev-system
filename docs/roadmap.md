@@ -13,7 +13,7 @@ Established baseline:
 - repository-as-truth principle;
 - PRD → Technical Design → Test → Coding → CR → Integration → Final CR lifecycle;
 - Product / Design / Test freeze semantics;
-- bounded task execution with compatible Test batching, dependency waves, and isolated Coding / Module CR contexts;
+- bounded task execution with compatible Test batching, READY-set scheduling, safe worktree fan-out, dependency waves, and isolated Coding / Module CR contexts;
 - Freeze Break Request;
 - language-independent engineering standards;
 - task-packet / handoff contract;
@@ -34,6 +34,8 @@ Validation questions:
 - Does Human Brief materially reduce cognitive load while preserving necessary decisions?
 - Can a fresh execution context continue from repository truth + Agent Handoff without conversational history?
 - Can runtime-native delegation remove routine human orchestration without weakening Coding/Review independence?
+- Does READY-set + worktree fan-out materially reduce wall-clock time on real multi-task iterations?
+- Which conflict classes correctly force serialization, and where are we still being too conservative or too aggressive?
 - When does Test batching reduce overhead without introducing cross-task coupling?
 - Do standardized prompts improve high-frequency execution compared with ad-hoc natural-language commands?
 - Which prompt fields repeatedly prove useful or unnecessary?
@@ -46,6 +48,8 @@ Based on real-project runs:
 - refine task packet fields;
 - refine freeze/gate rules;
 - validate coordinator auto-continuation with runtime-native isolated sub-agents;
+- validate READY-set calculation and runtime-native worktree fan-out on real projects;
+- refine serialization/conflict rules from merge, shared-state, and resource-pressure evidence;
 - refine Test batching and dependency-wave rules from observed coupling/failure cases;
 - improve project-adoption guidance;
 - add small examples/case studies;
@@ -74,7 +78,7 @@ Possible future mechanisms include:
 3. CLI;
 4. queue;
 5. scheduler;
-6. automatic worktree/branch provisioning;
+6. custom automatic worktree/branch manager beyond runtime-native capabilities;
 7. agent RPC / cross-agent transport;
 8. persistent orchestration state database;
 9. automatic write-scope / freeze-diff enforcement;

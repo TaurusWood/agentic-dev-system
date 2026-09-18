@@ -19,11 +19,13 @@ Verify required modules are complete/reviewed and consumed freezes still have in
 
 ## Task-specific work
 
-- integrate in dependency order;
-- resolve mechanical integration issues without redefining module behavior;
+- integrate only reviewed task result revisions, including results produced in parallel worktrees;
+- integrate in dependency order; independent results from the same wave may be merged in any mechanically safe order;
+- resolve mechanical merge conflicts without redefining module behavior;
+- if a merge exposes a semantic contract conflict, stop normal integration and route it to the owning frozen stage instead of hiding it in conflict resolution;
 - validate cross-module public contracts, terminology, state flow, and ownership;
 - run full required regression;
-- route real contract conflicts back to the owning frozen stage.
+- after successful integration, make the integrated revision available to the coordinator so it can recompute the next `READY_SET`.
 
 ## Output
 

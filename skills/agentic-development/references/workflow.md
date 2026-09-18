@@ -89,29 +89,76 @@ These are separate dimensions:
 
 A fresh Coding or CR sub-agent may use the shared workspace when execution is serialized and doing so is necessary to see valid uncommitted repository state. Do not create a worktree if it would hide required uncommitted artifacts. Conversely, parallel writers with overlapping or unsafe shared state require serialization or appropriate workspace isolation.
 
-Independent ready tasks may run in parallel when declared dependencies and write scopes permit it. Dependent tasks remain ordered. A typical execution wave is:
+## READY_SET and parallel execution
+
+After relevant TEST FREEZEs are established, the coordinator computes a `READY_SET` before choosing Coding work.
+
+A task is READY when:
+
+- its required Product/Design/Test freezes are established and pass integrity checks;
+- every declared dependency required before Coding is complete at the revision expected by the task;
+- its execution baseline is committed and contains the frozen artifacts it must consume;
+- no canonical stage stop condition currently blocks the task.
+
+If `READY_SET` contains multiple tasks, safe parallel fan-out is the default when the runtime supports concurrent isolated sub-agents and worktrees.
+
+Before parallel dispatch, classify conflicts using repository evidence and Task Packets. A pair/group must be serialized when any of these applies:
+
+- `DEPENDENCY` — a task depends on another task in the candidate group;
+- `WRITE_SCOPE_OVERLAP` — declared write scopes overlap in a way that could produce competing edits;
+- `SHARED_UNCOMMITTED_STATE` — a task requires uncommitted state that a new worktree would not contain;
+- `GLOBAL_RESOURCE_CONFLICT` — tasks may concurrently rewrite shared lockfiles, schemas, generated artifacts, global config, migrations, or another singleton resource;
+- `INSUFFICIENT_ISOLATION` — the runtime cannot provide the reasoning/filesystem isolation required for safe concurrent writes.
+
+Do not serialize otherwise-independent tasks merely because serial execution is simpler.
+
+### Parallel Coding / CR wave
+
+For each safe parallel task:
+
+1. create/reuse a dedicated worktree/branch from a committed baseline that contains its required frozen artifacts;
+2. spawn an isolated Coding context for that bounded task;
+3. require Coding to commit/identify its result revision inside that task branch/worktree;
+4. start Module CR in a fresh reasoning context against that task's repository evidence and result revision;
+5. allow independent CRs to run concurrently;
+6. if CR returns `CHANGES_REQUIRED`, keep correction/re-review bounded to that task branch until reviewed;
+7. expose only reviewed result revisions to Integration.
+
+Conceptually:
 
 ```text
 compatible Test preparation
-    ↓ per-task TEST FREEZE
-ready Coding tasks (parallel where safe)
-    ↓
-fresh Module CR tasks
-    ↓ PASS
-unlock next dependency wave
+        ↓ per-task TEST FREEZE
+     compute READY_SET
+        ↓
+ conflict / dependency classification
+        ↓
+ ┌────────────┬────────────┬────────────┐
+ WT-A         WT-B         WT-C
+ Coding A     Coding B     Coding C
+    ↓            ↓            ↓
+ fresh CR-A   fresh CR-B   fresh CR-C
+ └────────────┴────────────┴────────────┘
+        ↓ reviewed revisions
+      Integration
+        ↓
+ recompute READY_SET / unlock next wave
 ```
 
-This replaces a mechanical requirement for either "one chat per stage per slice" or "all tests -> all coding -> all review". Preserve authority and dependency correctness first; minimize execution overhead second.
+The coordinator should maximize **safe useful concurrency**, not agent count. Respect runtime/resource limits; do not hard-code a universal worker count in the protocol.
+
+This replaces a mechanical requirement for either "one chat per stage per slice", fully serial bounded tasks, or "all tests -> all coding -> all review". Preserve authority, dependency correctness, and mergeability first; minimize wall-clock time second.
 
 ## Continuation policy
 
 When the current stage completes successfully:
 
 1. record/consume the stage result and Agent Handoff as coordinator state;
-2. determine which task/stage is now eligible from Task Packets, dependency state, and revisions;
-3. if the runtime provides the required isolated reasoning contexts, delegate the next bounded work automatically;
-4. continue through routine Test, Coding, Module CR, Integration, and Final CR transitions without returning control to the human merely to launch the next stage;
-5. if several independent tasks are ready, parallelize only when dependency and write-scope safety is explicit.
+2. recompute the `READY_SET` from Task Packets, dependency/review state, freezes, and revisions;
+3. classify READY tasks for parallel safety using the canonical conflict reasons above;
+4. if multiple safe tasks and runtime-native worktree/concurrent delegation are available, fan them out in parallel by default;
+5. otherwise serialize only the tasks whose conflict/dependency state requires it;
+6. continue through routine Test, Coding, Module CR, Integration, and Final CR transitions without returning control to the human merely to launch the next stage.
 
 In ORCHESTRATED mode, **stage completion is an internal transition, not a user-facing stop**. Agent Handoff is an internal delegation payload unless execution is returning to the human.
 

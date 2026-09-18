@@ -81,7 +81,7 @@ Identify the smallest relevant set of universal and project-local standards need
 If frozen Technical Design intentionally deviates from an applicable standard, reference the approved exception. Task packets do not create exceptions by themselves.
 
 ### Declare permissions
-Write scope is part of task correctness, not a convenience hint.
+Write scope is part of task correctness, not a convenience hint. Keep it as narrow and truthful as the design permits: the coordinator uses `depends_on` + `write_scope` + current repository state to identify safe parallel Coding candidates. Do not add a separate authoritative `parallel_safe` flag that can drift from those facts.
 
 ### Declare frozen revisions
 A task without known upstream revisions is vulnerable to moving-target drift.
@@ -90,7 +90,7 @@ A task without known upstream revisions is vulnerable to moving-target drift.
 For new behavior or bug regression expected to fail at baseline, TEST FREEZE should record that the relevant test failed at `baseline_revision` for the expected semantic reason. If it was already green, record a justification instead of manufacturing RED.
 
 ### Declare dependencies and validation
-“Looks correct” is not a done condition. Dependencies and validation commands must be explicit.
+“Looks correct” is not a done condition. Dependencies and validation commands must be explicit. Dependency edges should distinguish tasks that must complete before Coding from tasks that are merely related, because the coordinator derives each execution wave's `READY_SET` from them.
 
 ### Declare stop conditions
 The packet must tell the agent when independent reasoning is no longer authorized.
@@ -118,6 +118,8 @@ notes:
 
 For `FREEZE_BREAK_REQUIRED`, use the canonical Freeze Break Request in the installed skill.
 
-## 6. Future automation
+## 6. Runtime-native scheduling
 
-The task packet may later become machine-readable input to prompt generation, worktree provisioning, write-scope enforcement, scheduling, validation, and freeze-diff checks. v0.1 does not require any of those mechanisms.
+The current protocol may use Task Packet dependencies/scopes as input to runtime-native READY-set calculation, worktree fan-out, validation, and integration. This does not require adding scheduler-owned truth to the packet.
+
+Custom DAG engines, persistent schedulers, automatic worktree managers, or hard write-scope enforcement remain optional future mechanisms. Prefer runtime-native capabilities when they can execute the same contract safely.

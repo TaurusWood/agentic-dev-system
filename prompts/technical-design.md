@@ -20,7 +20,8 @@ Perform canonical PRODUCT FREEZE integrity preflight.
 ## Task-specific work
 
 - inspect real code before designing;
-- define ownership, public contracts, invariants, state/data flow, integration boundaries, compatibility needs, and dependencies;
+- define ownership, public contracts, invariants, state/data flow, integration boundaries, compatibility needs, dependency edges, and write scopes precise enough to identify obvious parallel conflicts;
+- avoid broad write scopes when a narrower truthful scope is known; do not invent parallel-safety metadata that duplicates facts already derivable from dependencies/scope/repository state;
 - create the initial Task Packet for each bounded task, including repository identity, `base_revision`, product/design references, scope, dependencies, validation, and stop conditions;
 - do not establish DESIGN FREEZE until required review is complete and the design exists at a committed revision.
 

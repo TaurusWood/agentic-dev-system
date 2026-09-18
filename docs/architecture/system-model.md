@@ -74,6 +74,8 @@ The number of chats is an implementation detail. A single runtime with isolated 
 
 Reasoning/context isolation is distinct from filesystem/worktree isolation. A fresh context can operate on the same workspace when serialized access is safe or required to see uncommitted state. Worktrees are used for filesystem isolation/concurrency when appropriate; they are not the definition of agent independence.
 
+When multiple bounded Coding tasks are simultaneously READY, the Control Plane should classify dependency/write/shared-state conflicts before dispatch. Safe independent writers should use separate runtime-native worktrees and run concurrently; reviewed result revisions return to Integration, which merges them before the next dependency wave is computed.
+
 ## 4. Communication model
 
 Agents should exchange project truth through the repository rather than free-form retellings.

@@ -48,8 +48,8 @@ Technical Design + module slicing + initial Task Packets
         ↓ DESIGN FREEZE
 Test preparation for one or more ready bounded tasks
         ↓ TEST FREEZE per task
-Coding → fresh Module CR for ready tasks
-        ↓ dependency unlock / next execution wave
+READY_SET → parallel Coding/worktrees → fresh CR per task
+        ↓ Integration / dependency unlock / next wave
 Integration / top-level coding
         ↓
 Final CR
@@ -159,7 +159,9 @@ Stage boundaries are authority boundaries, not mandatory user-managed chat bound
 
 When the runtime provides isolated sub-agents/threads, a coordinator should keep moving through routine Test, Coding, Review, Integration, and Final Review work without asking the human to launch each stage. Compatible Test tasks may be prepared in one Test context, while each task still owns its own Task Packet fields, evidence, and TEST FREEZE. Coding and Module CR must use separate reasoning contexts so review does not inherit the implementation agent's reasoning transcript.
 
-Reasoning/context isolation and filesystem/worktree isolation are independent. A fresh sub-agent may safely use the shared workspace when work is serialized and required state is uncommitted; worktrees are an optional concurrency/isolation mechanism, not a prerequisite for context independence.
+For Coding, the coordinator computes a `READY_SET`. If two or more READY tasks are independent and runtime-native worktrees are available, parallel worktree fan-out is the default. Tasks are serialized only for dependency, overlapping write scope, required shared uncommitted state, shared global-resource conflict, insufficient isolation, or runtime/resource limits.
+
+Reasoning/context isolation and filesystem/worktree isolation remain independent. A fresh sub-agent may safely use the shared workspace when work is serialized and required state is uncommitted; worktrees provide filesystem isolation for safe concurrent writers.
 
 The coordinator returns control only for `COMPLETED`, `HUMAN_DECISION_REQUIRED`, `FREEZE_BREAK_REQUIRED`, `BLOCKED`, `DELEGATION_UNAVAILABLE`, or `FINAL_ACCEPTANCE_REQUIRED`. If the runtime cannot delegate safely, the protocol falls back to a structured handoff and ready-to-paste next-stage prompt.
 
@@ -189,7 +191,9 @@ The current version succeeds if real projects show that:
 5. Task Packets survive fresh execution-context handoff without hidden context;
 6. Human Brief reduces reading without hiding material decisions;
 7. runtime-native continuation removes routine human orchestration without weakening stage isolation;
-8. repeated CR/rework decreases;
-9. the process remains light enough to use routinely.
+8. independent READY tasks actually execute concurrently when safe instead of being unnecessarily serialized;
+9. parallel worktree results integrate without hidden semantic conflict or excessive merge/rework cost;
+10. repeated CR/rework decreases;
+11. the process remains light enough to use routinely.
 
 The next useful work is therefore empirical validation on real repositories, not more orchestration infrastructure.

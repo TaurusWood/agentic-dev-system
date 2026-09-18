@@ -35,8 +35,8 @@ Requirement / finding
 → DESIGN FREEZE
 → 对一个或多个 Ready Task 进行 Test 准备
 → 每个 Task 独立 TEST FREEZE
-→ Coding → 独立新上下文 Module CR，按依赖波次执行
-→ Integration
+→ READY_SET → 独立 worktree 并行 Coding → 每任务独立 Module CR
+→ Integration / 下一依赖波次
 → Final CR
 → Focused Human Acceptance
 ```
@@ -87,7 +87,9 @@ Runtime 已提供隔离 Sub-agent / Thread 时，默认由一个 Coordinator 在
 
 Coding 与 Module CR 必须使用不同的**推理上下文**；不要通过 resume/continue 复用 Coding Agent 的推理 transcript 来充当独立审查。推理/Context 隔离与 filesystem/worktree 隔离是两件事：串行执行且需要看到未提交状态时，可以让新的 Sub-agent 使用 shared workspace；只有仓库状态和并发需求适合时才使用 worktree。
 
-没有依赖关系的 Ready Task 可以并行；存在依赖的 Task 按 dependency graph 分波次执行。普通 Stage 完成属于内部状态迁移，不应把控制权交还给人。
+Coding 派发前，Coordinator 必须先计算 `READY_SET`。当多个 READY Task 相互独立且 Runtime 支持 worktree 时，默认使用独立 worktree 并行 Coding，而不是为了简单而串行。只有 dependency、write-scope overlap、依赖 shared uncommitted state、global resource conflict、隔离能力不足或 Runtime/资源并发限制时才串行。
+
+每个并行 Coding 结果都由新的独立推理上下文进行 Module CR；通过审核的 result revision 再进入 Integration，完成整合后重新计算下一轮 `READY_SET`。普通 Stage 完成属于内部状态迁移，不应把控制权交还给人。
 
 Runtime 无法安全 delegation 时，再降级为人工方式：
 
