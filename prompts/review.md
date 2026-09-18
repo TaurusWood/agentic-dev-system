@@ -16,6 +16,8 @@ Independently determine whether one completed module task conforms to its frozen
 
 ## Review focus
 
+When the runtime supports isolated execution contexts, start Module CR in a fresh context. Do not resume or reuse the Coding agent's reasoning transcript as review evidence; reconstruct the task from repository truth, Task Packet, frozen revisions, and the implementation diff.
+
 Review in this order: contract conformance, freeze integrity, scope/ownership, test integrity and discriminating evidence, correctness/failure semantics, module/dependency boundaries, implementation quality, regression risk, unnecessary complexity.
 
 Every finding must identify concrete evidence, reachable impact, and required fix/escalation. Do not create blockers from style preference alone.

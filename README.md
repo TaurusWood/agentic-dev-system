@@ -14,7 +14,7 @@ The runnable distribution is the `agentic-development` Skill under [`skills/agen
 npx skills add https://github.com/TaurusWood/agentic-dev-system --skill agentic-development
 ```
 
-A manual multi-chat workflow and a runtime with sub-agents use the same Skill contracts. Automation is optional.
+A manual multi-chat workflow and a runtime with sub-agents use the same Skill contracts. Manual execution remains supported, but when isolated runtime-native delegation is available the default is automatic continuation across routine stages rather than asking the human to open each next chat.
 
 ## One normative runtime source
 
@@ -46,12 +46,10 @@ PRD / Product Discussion
         ↓ PRODUCT FREEZE
 Technical Design + module slicing + initial Task Packets
         ↓ DESIGN FREEZE
-Per-module Test
-        ↓ TEST FREEZE
-Coding
-        ↓
-Module CR
-        ↓
+Test preparation for one or more ready bounded tasks
+        ↓ TEST FREEZE per task
+Coding → fresh Module CR for ready tasks
+        ↓ dependency unlock / next execution wave
 Integration / top-level coding
         ↓
 Final CR
@@ -155,9 +153,17 @@ Open-ended discussion remains appropriate while uncertainty is the work. Once in
 
 [`docs/standards/`](docs/standards/) contains language/framework-independent engineering invariants: ownership, module boundaries, dependency direction, justified abstraction, implementation quality, and explicit failure semantics. It does not prescribe one universal directory layout or replace project-local architecture.
 
+## Runtime-native orchestration
+
+Stage boundaries are authority boundaries, not mandatory user-managed chat boundaries.
+
+When the runtime provides isolated sub-agents/threads, a coordinator should keep moving through routine Test, Coding, Review, Integration, and Final Review work without asking the human to launch each stage. Compatible Test tasks may be prepared in one Test context, while each task still owns its own Task Packet fields, evidence, and TEST FREEZE. Coding and Module CR must use separate execution contexts so review does not inherit the implementation agent's reasoning transcript.
+
+Automatic continuation stops for material human decisions, Freeze Break approval, unresolved blockers, or focused final acceptance. If the runtime cannot delegate safely, the protocol falls back to a structured handoff and ready-to-paste next-stage prompt.
+
 ## Current non-goals
 
-The current version does not require a custom:
+The current version does not require building a custom:
 
 - DAG engine;
 - CLI;
@@ -168,7 +174,7 @@ The current version does not require a custom:
 - large Prompt Compiler;
 - automatic dispatch system.
 
-These mechanisms should be added or integrated only when real project evidence shows the protocol itself is stable and manual/runtime-native execution has become the bottleneck.
+Use runtime-native orchestration capabilities when they already exist. Add custom infrastructure only when real project evidence shows native/manual execution is the bottleneck.
 
 ## Validation focus
 
@@ -178,9 +184,10 @@ The current version succeeds if real projects show that:
 2. stage authority prevents silent upstream rewriting;
 3. freeze revisions are actually verifiable;
 4. TEST FREEZE blocks both test weakening and non-discriminating test contracts;
-5. Task Packets survive fresh-chat handoff without hidden context;
+5. Task Packets survive fresh execution-context handoff without hidden context;
 6. Human Brief reduces reading without hiding material decisions;
-7. repeated CR/rework decreases;
-8. the process remains light enough to use routinely.
+7. runtime-native continuation removes routine human orchestration without weakening stage isolation;
+8. repeated CR/rework decreases;
+9. the process remains light enough to use routinely.
 
 The next useful work is therefore empirical validation on real repositories, not more orchestration infrastructure.

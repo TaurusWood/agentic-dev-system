@@ -137,11 +137,17 @@ Rule of thumb:
 
 > Explore with Discussion; execute with standardized prompts.
 
-## Next-stage prompt
+## Delegated continuation
 
-If the runtime cannot delegate the next stage, the current stage may output a ready-to-paste next-stage prompt after its Human Brief and Agent Handoff.
+When the runtime can create the isolated execution context required by `workflow.md`, a standardized execution prompt is primarily a delegation payload, not a mandatory human handoff. The coordinator should launch the next eligible bounded stage automatically unless a canonical stop condition requires human judgment.
 
-Generate it from the **new repository state**, latest task packet, and latest established freezes. Do not blindly reuse a prompt drafted before the current stage completed.
+Prompt composition does not decide whether tasks may be batched, parallelized, or reviewed in the same context; those execution semantics come from `workflow.md`.
+
+## Next-stage prompt fallback
+
+If the runtime cannot safely delegate the next stage, the current stage may output a ready-to-paste next-stage prompt after its Human Brief and Agent Handoff.
+
+Generate it from the **new repository state**, latest task packet, and latest established freezes. Do not blindly reuse a prompt drafted before the current stage completed. Do not stop merely to surface a prompt when runtime-native delegation can continue safely.
 
 ## Ambiguity
 

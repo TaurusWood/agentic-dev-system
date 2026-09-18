@@ -64,9 +64,9 @@ This file is the canonical runtime source for stage authority. Use these contrac
 ## Test
 
 **Owns**
-- proving frozen product and technical contracts for one bounded task
-- deterministic fixtures and regression coverage
-- the `test_contract` and test-evidence fields of the task packet until TEST FREEZE
+- proving frozen product and technical contracts for one or more explicitly assigned bounded tasks
+- deterministic fixtures and regression coverage without cross-task semantic coupling
+- the `test_contract` and test-evidence fields of each assigned task packet until that task's TEST FREEZE
 
 **May change**
 - tests/fixtures inside assigned Test scope before TEST FREEZE
@@ -92,9 +92,9 @@ This file is the canonical runtime source for stage authority. Use these contrac
 - validation commands are explicit
 - for a new behavior or bug regression that is expected to be absent/broken at the declared baseline, the relevant test is run against `baseline_revision` and fails for the expected semantic reason
 - if the relevant test is already green at baseline, the Test result explicitly records why that is valid and what evidence still makes the contract discriminating
-- task-packet test paths, evidence, and proposed test revision are updated
-- required independent test review is complete
-- TEST FREEZE can be established at a committed revision
+- for every assigned task, task-packet test paths, evidence, and proposed test revision are updated
+- required independent test review is complete for every assigned task
+- each task's TEST FREEZE can be established at a committed revision
 
 ## Coding
 
@@ -141,6 +141,7 @@ This file is the canonical runtime source for stage authority. Use these contrac
 
 **Must not do**
 - redesign Product or Technical Design during review
+- treat the Coding agent's private reasoning/transcript as authoritative review evidence
 - create style-only findings without a violated invariant and impact
 
 **Must stop when**
@@ -148,6 +149,7 @@ This file is the canonical runtime source for stage authority. Use these contrac
 - freeze-integrity evidence is missing or contradicts the reviewed revision
 
 **Done when**
+- the review is independent of the Coding execution context when runtime isolation is available
 - frozen artifacts and declared scope are independently checked against revisions/diff
 - test sensitivity evidence is reviewed where applicable
 - findings are evidence-based and ordered by severity

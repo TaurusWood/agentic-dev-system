@@ -15,12 +15,10 @@ PRD / Product Discussion
     ↓ PRODUCT FREEZE
 Technical Design + module slicing + initial Task Packets
     ↓ DESIGN FREEZE
-Per-module Test
-    ↓ TEST FREEZE
-Coding
-    ↓
-Module CR
-    ↓
+Test preparation for one or more ready bounded tasks
+    ↓ TEST FREEZE per task
+Coding → fresh Module CR for ready tasks
+    ↓ dependency unlock / next execution wave
 Integration / top-level coding
     ↓
 Final CR
@@ -46,7 +44,7 @@ DESIGN FREEZE requires design review plus a committed revision.
 
 ## 5. Test Contract
 
-Test proves the frozen Product and Design contracts. It owns test files/fixtures in scope and the Task Packet's test-contract/evidence fields before TEST FREEZE.
+Test proves the frozen Product and Design contracts. One Test execution context may prepare several compatible bounded tasks when their frozen inputs, baselines, and fixtures do not create cross-task coupling. Each task still owns separate test-contract/evidence fields and establishes its own TEST FREEZE.
 
 For new behavior or a bug regression expected to fail at the declared baseline, the test should be run against `baseline_revision` and fail for the expected semantic reason. This is sensitivity evidence, not ceremonial RED. If the test is already green, Test records why that result is valid.
 
@@ -60,7 +58,7 @@ A failing frozen test is not authority to edit the test. If the contract is wron
 
 ## 7. Module CR
 
-Module CR independently checks contract conformance, freeze integrity, test sensitivity/integrity, scope, ownership, correctness, failure semantics, architecture, regression risk, and unjustified complexity.
+Module CR independently checks contract conformance, freeze integrity, test sensitivity/integrity, scope, ownership, correctness, failure semantics, architecture, regression risk, and unjustified complexity. In a runtime with isolated agents, CR starts from a fresh review context and repository evidence rather than continuing the Coding agent's reasoning transcript.
 
 A review finding must identify evidence and reachable impact; style preference alone is not a blocker.
 
@@ -72,4 +70,4 @@ Final CR verifies the integrated user journey, PRD coverage, cross-module contra
 
 ## 9. Human/agent split
 
-Default human output is the minimum information needed for judgment. Technical continuity is preserved through versioned repository artifacts and structured Agent Handoff rather than long chat summaries.
+Default human output is the minimum information needed for judgment. Technical continuity is preserved through versioned repository artifacts and structured Agent Handoff rather than long chat summaries. When runtime-native delegation exists, routine stage completion should trigger the next eligible stage automatically; human attention is reserved for material decisions, Freeze Breaks, unresolved blockers, and focused final acceptance.

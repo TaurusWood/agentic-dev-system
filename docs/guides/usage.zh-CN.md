@@ -23,7 +23,7 @@ English version: [`usage.en.md`](usage.en.md)
 npx skills add https://github.com/TaurusWood/agentic-dev-system --skill agentic-development
 ```
 
-无论人工新开 Chat，还是 Runtime 派发 Sub-agent，都让新的执行单元先使用 `agentic-development`，直接读取目标项目仓库事实。
+无论人工新开 Chat，还是 Runtime 派发 Sub-agent，都让新的执行单元先使用 `agentic-development`，直接读取目标项目仓库事实。Runtime 已支持隔离 Sub-agent 时，优先由 Coordinator 自动续跑；人工新开 Chat 是兼容降级路径。
 
 ## 3. 核心流程
 
@@ -33,10 +33,9 @@ Requirement / finding
 → PRODUCT FREEZE
 → Technical Design + Task Packet
 → DESIGN FREEZE
-→ Module Test
-→ TEST FREEZE
-→ Coding
-→ Module CR
+→ 对一个或多个 Ready Task 进行 Test 准备
+→ 每个 Task 独立 TEST FREEZE
+→ Coding → 独立新上下文 Module CR，按依赖波次执行
 → Integration
 → Final CR
 → Focused Human Acceptance
@@ -82,22 +81,26 @@ Technical Design 创建初始 Task Packet，至少固定：
 
 Test 阶段只拥有其中 `test_contract` 和 test evidence，直到 TEST FREEZE。Coordinator 可以改 phase/status/result revision 等执行状态，但不能偷偷改 frozen contract 字段。
 
-## 7. 人工多 Chat
+## 7. Runtime 原生编排与人工降级
 
-人工方式不需要调度器：
+Runtime 已提供隔离 Sub-agent / Thread 时，默认由一个 Coordinator 在常规阶段之间自动续跑。兼容的 Test Task 可以在同一个 Test 上下文中批处理，但每个 Task 仍独立维护 Task Packet、test evidence 和 TEST FREEZE revision。
+
+Coding 与 Module CR 必须使用不同的执行上下文；不要通过 resume/continue 复用 Coding Agent 的推理 transcript 来充当独立审查。没有依赖关系的 Ready Task 可以并行；存在依赖的 Task 按 dependency graph 分波次执行。
+
+Runtime 无法安全 delegation 时，再降级为人工方式：
 
 ```text
 Product Chat
 → Design Chat
-→ Module A Test Chat
-→ Module A Coding Chat
-→ Module A CR Chat
+→ Test Chat / compatible Test batch
+→ Coding Chat
+→ 独立新上下文 Module CR Chat
 → ...
 → Integration Chat
 → Final CR Chat
 ```
 
-每个 Chat 都从仓库与 Task Packet 重新读取事实，而不是依赖上一 Chat 的长总结。
+每个执行上下文都从仓库与 Task Packet 重新读取事实，而不是依赖上一 Chat 的长总结。
 
 ## 8. Prompt Generator
 
@@ -129,4 +132,4 @@ Agent Handoff 只传执行元数据：revision、authority、scope、freeze inte
 
 当前不因为未来自动化目标而提前建设 DAG engine、scheduler、queue、worktree manager、Agent RPC、state database 或大型 Prompt Compiler。
 
-先在 `pocket-railway`、`workspace-lens`、`J-Store` 等真实项目中验证：新 Chat 是否能只靠 Skill + Repository Truth + Task Packet 正确继续，Freeze 是否真正阻止越权，baseline test evidence 是否减少假绿，以及 Human Brief 是否降低人工阅读和重复 CR 成本。
+先在 `pocket-railway`、`workspace-lens`、`J-Store` 等真实项目中验证：新的执行上下文是否能只靠 Skill + Repository Truth + Task Packet 正确继续，Freeze 是否真正阻止越权，baseline test evidence 是否减少假绿，Runtime 原生 delegation 是否能减少人工调度，以及 Human Brief 是否降低人工阅读和重复 CR 成本。

@@ -26,11 +26,13 @@ Run `node scripts/check-protocol-drift.mjs` after changing prompts or protocol s
 7. Prompts are execution interfaces, not sources of truth. They should reference repository artifacts and Git revisions.
 8. Treat stage roles as authority boundaries, not role-play personas. Follow the canonical runtime references above.
 9. Default human-facing output to Human Brief. Use Human Discussion only for material decisions or explicit requests. Use structured Agent Handoff for downstream execution.
-10. Distinguish methodology changes from future tooling ideas. Do not turn deferred orchestration ideas into current requirements without evidence from real-project use.
+10. Distinguish runtime-native delegation from custom orchestration infrastructure. Real-project evidence may justify preferring native sub-agents without implying a requirement to build a scheduler, DAG engine, or agent platform.
 11. Do not create a second normative copy of workflow, stage, freeze, or prompt-composition semantics in `docs/` or `prompts/`.
 
 ## Current maturity
 
 The repository is a methodology and contract baseline under active validation.
 
-The workflow must remain usable through manual multi-chat execution. Do not assume or require a DAG engine, CLI, queue, scheduler, automatic worktree, agent RPC, state database, prompt compiler, or hard enforcement unless the repository actually implements it.
+The workflow must remain usable through manual multi-chat execution. When a runtime already provides isolated sub-agents/threads, prefer native delegation and automatic continuation across routine stage boundaries; manual chat creation is the compatibility fallback, not the preferred execution model.
+
+Do not assume or require a custom DAG engine, CLI, queue, scheduler, automatic worktree manager, agent RPC layer, state database, prompt compiler, or hard enforcement unless the repository actually implements it. Runtime-native delegation is an execution capability, not permission to invent missing infrastructure.

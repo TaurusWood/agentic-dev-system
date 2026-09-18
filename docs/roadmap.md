@@ -13,7 +13,7 @@ Established baseline:
 - repository-as-truth principle;
 - PRD → Technical Design → Test → Coding → CR → Integration → Final CR lifecycle;
 - Product / Design / Test freeze semantics;
-- vertical per-module Test / Coding / CR execution;
+- bounded task execution with compatible Test batching, dependency waves, and isolated Coding / Module CR contexts;
 - Freeze Break Request;
 - language-independent engineering standards;
 - task-packet / handoff contract;
@@ -32,30 +32,34 @@ Validation questions:
 - Which freeze breaks are legitimate?
 - Are stage Role Contracts sufficient to prevent overreach?
 - Does Human Brief materially reduce cognitive load while preserving necessary decisions?
-- Can a fresh chat/agent continue from repository truth + Agent Handoff without conversational history?
+- Can a fresh execution context continue from repository truth + Agent Handoff without conversational history?
+- Can runtime-native delegation remove routine human orchestration without weakening Coding/Review independence?
+- When does Test batching reduce overhead without introducing cross-task coupling?
 - Do standardized prompts improve high-frequency execution compared with ad-hoc natural-language commands?
 - Which prompt fields repeatedly prove useful or unnecessary?
 
 ## Near term — improve from evidence
 
-Only after real-project runs:
+Based on real-project runs:
 
 - simplify or strengthen stage prompts;
 - refine task packet fields;
 - refine freeze/gate rules;
+- validate coordinator auto-continuation with runtime-native isolated sub-agents;
+- refine Test batching and dependency-wave rules from observed coupling/failure cases;
 - improve project-adoption guidance;
 - add small examples/case studies;
 - promote repeated/high-impact lessons into the base templates.
 
-The workflow should remain fully usable through manual multi-chat execution.
+The workflow must remain fully usable through manual multi-chat execution as a fallback.
 
-## Long-term direction — multi-agent development system
+## Long-term direction — richer orchestration infrastructure
 
-A **multi-agent development system remains a long-term target**, but it is not the current implementation goal.
+Runtime-native multi-agent execution is already a supported and preferred mode when the host provides isolated sub-agents. Building a **custom orchestration platform** remains a long-term option, not the current implementation goal.
 
-If the methodology proves stable, the protocol may later become the contract layer for a richer multi-agent runtime that can coordinate module tasks, tests, coding, reviews, integration, and final review.
+If native runtime capabilities eventually become insufficient, the protocol may serve as the contract layer for richer coordination of dependency graphs, worktrees, validation, integration, and final review.
 
-That runtime does not necessarily need to be built from scratch here. It may be implemented by adapting or integrating external systems such as GitHub Spec Kit, future coding-agent runtimes, or other orchestration frameworks.
+That infrastructure does not need to be built from scratch here. Prefer adapting or integrating existing coding-agent runtimes or orchestration frameworks when they satisfy the protocol.
 
 The key principle is:
 

@@ -21,7 +21,7 @@ Runtime semantics are defined only by:
 npx skills add https://github.com/TaurusWood/agentic-dev-system --skill agentic-development
 ```
 
-Whether a human opens a fresh chat or a runtime delegates to a sub-agent, the execution unit should use `agentic-development` and read the target repository directly.
+Whether a human opens a fresh chat or a runtime delegates to a sub-agent, the execution unit should use `agentic-development` and read the target repository directly. When isolated sub-agents are available, prefer coordinator-driven automatic continuation; manual chat creation is the fallback.
 
 ## 3. Lifecycle
 
@@ -31,10 +31,9 @@ Requirement / finding
 → PRODUCT FREEZE
 → Technical Design + Task Packet
 → DESIGN FREEZE
-→ Module Test
-→ TEST FREEZE
-→ Coding
-→ Module CR
+→ Test preparation for one or more ready tasks
+→ TEST FREEZE per task
+→ Coding → fresh Module CR in dependency waves
 → Integration
 → Final CR
 → Focused Human Acceptance
@@ -69,22 +68,26 @@ Technical Design creates the initial Task Packet with repository/branch/`base_re
 
 Test owns only the packet's `test_contract` and test-evidence fields before TEST FREEZE. A coordinator may update execution metadata such as phase/status/result revision, but it does not silently rewrite frozen contract fields.
 
-## 7. Manual multi-chat
+## 7. Runtime-native orchestration and manual fallback
 
-No orchestrator is required:
+If the runtime provides isolated sub-agents/threads, use one coordinator to continue automatically across routine stages. Compatible Test tasks may be batched in one Test context while preserving separate Task Packets, evidence, and TEST FREEZE revisions. Coding and Module CR use separate execution contexts; do not resume or reuse the Coding transcript as the independent review context.
+
+Independent ready tasks may run in parallel. Dependent tasks remain ordered by the dependency graph.
+
+When delegation is unavailable, use the same protocol manually:
 
 ```text
 Product Chat
 → Design Chat
-→ Module A Test Chat
-→ Module A Coding Chat
-→ Module A CR Chat
+→ Test Chat / compatible Test batch
+→ Coding Chat
+→ fresh Module CR Chat
 → ...
 → Integration Chat
 → Final CR Chat
 ```
 
-Each fresh chat reconstructs execution state from repository truth + Task Packet rather than a long previous-chat summary.
+Every execution context reconstructs state from repository truth + Task Packet rather than a long previous-chat summary.
 
 ## 8. Prompt composition
 
@@ -114,4 +117,4 @@ Agent Handoff carries execution metadata such as revisions, authority, scope, fr
 
 Do not pre-build a DAG engine, scheduler, queue, worktree manager, Agent RPC layer, state database, or large Prompt Compiler merely because future automation may use one.
 
-First validate the protocol on real projects: fresh-chat continuity, authority boundaries, freeze integrity, test discrimination, Human Brief cognitive load, and repeated-review/rework reduction.
+First validate the protocol on real projects: fresh-context continuity, authority boundaries, freeze integrity, test discrimination, native delegation/continuation, Human Brief cognitive load, and repeated-review/rework reduction.

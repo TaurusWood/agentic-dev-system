@@ -57,7 +57,7 @@ The protocol that decides what an execution agent may do and what it must read:
 - stop / escalation policy
 - output contract
 
-Today these controls may be applied manually through prompts and repository documents. They may be automated later without changing their semantics.
+These controls may be applied manually or by a runtime-native coordinator using isolated sub-agents. Native delegation changes execution mechanics, not protocol semantics; custom scheduling infrastructure remains optional.
 
 ### Execution Plane
 Short-lived chats or agents that execute one bounded role:
@@ -70,7 +70,7 @@ Short-lived chats or agents that execute one bounded role:
 - integration/top-level coding agent
 - final CR agent
 
-The number of chats is an implementation detail. A single runtime with sub-agents and a human manually opening multiple chats are both valid executions of the same protocol.
+The number of chats is an implementation detail. A single runtime with isolated sub-agents and a human manually opening multiple chats are both valid executions of the same protocol. When native isolation exists, automatic delegation is preferred for routine stages. Coding and independent CR should not reuse the same reasoning context.
 
 ## 4. Communication model
 
@@ -133,7 +133,7 @@ They must not become a parallel copy of the PRD or Technical Design.
 
 ## 7. Current boundary
 
-The current project validates **development protocol**, not orchestration infrastructure.
+The current project validates **development protocol plus runtime-native execution semantics**, not a custom orchestration platform.
 
 No current methodology requirement depends on:
 

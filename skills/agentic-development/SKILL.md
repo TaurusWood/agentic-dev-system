@@ -4,7 +4,7 @@ description: Use for non-trivial software development work that benefits from st
 license: MIT
 compatibility: Requires access to the target project repository. Sub-agent or multi-thread delegation is optional; manual multi-chat execution is fully supported.
 metadata:
-  version: "0.1.1"
+  version: "0.2.0"
   source: "TaurusWood/agentic-dev-system"
 ---
 
@@ -38,7 +38,8 @@ Repository code and versioned project documents are authoritative. Chat history 
 5. Load `references/stage-contracts.md` for the selected stage.
 6. If any upstream freeze is consumed, load `references/freeze-output.md` and perform its freeze-integrity preflight before writing.
 7. Execute the stage within its authority boundary.
-8. Return a concise Human Brief and, when another stage must continue, an Agent Handoff or a ready-to-use next-stage prompt.
+8. Return a concise Human Brief and, when another stage must continue, an Agent Handoff.
+9. If no canonical stop condition requires human judgment and the runtime supports isolated delegation, continue automatically to the next eligible stage per `references/workflow.md`. A ready-to-use next-stage prompt is the fallback when delegation is unavailable, not the normal stopping point.
 
 Do not require a project profile file. Infer the project map from existing repository instructions and structure unless the project explicitly provides one.
 
@@ -91,13 +92,24 @@ Prompt generation is a composition practice, not a separate truth source:
 
 Explore uncertain product/UX/bug/architecture questions with natural-language discussion. Once intent is stable, prefer standardized prompts for repetitive Test, Coding, CR, Integration, and Final CR work.
 
-## Delegation capability
+## Delegation and continuation
 
-If the runtime supports sub-agents/threads and the user wants delegation, it may execute the next bounded stage through that native capability, using the same stage contract and repository artifacts.
+Stage boundaries are authority boundaries, not mandatory user-managed chat boundaries.
 
-If the runtime does not support delegation, do not pretend it does. Finish the current stage and provide a ready-to-paste next-stage prompt.
+When the runtime supports isolated sub-agents/threads, default to runtime-native delegation for routine downstream stages unless the user explicitly requests manual control:
 
-The method must remain valid in both modes.
+- the coordinator continues across successful routine stage transitions without waiting for the human to open a new chat;
+- each child reads repository truth directly and verifies declared base/freeze revisions before writing;
+- compatible Test tasks may be batched in one Test execution context when `references/workflow.md` batching conditions hold; each task still keeps independent Task Packet fields, evidence, and TEST FREEZE;
+- Coding and Module CR must use separate isolated execution contexts; do not resume or reuse the Coding agent's reasoning transcript as independent review;
+- independent ready tasks may run in parallel only when declared dependencies and write scopes permit it;
+- dependent tasks remain ordered by the dependency graph.
+
+Stop automatic continuation only when a canonical stage/Freeze stop condition is reached, a material human decision or Freeze Break approval is required, an unresolved blocker prevents safe progress, or focused final acceptance is required.
+
+If the runtime cannot delegate safely, do not pretend it can. Finish the current stage and provide the canonical Agent Handoff plus a ready-to-paste next-stage prompt.
+
+Do not build or assume a custom DAG engine, scheduler, worktree manager, or agent RPC layer merely to satisfy this preference. Runtime-native delegation is the preferred execution mechanism; manual multi-chat remains the compatibility fallback.
 
 ## Scope discipline
 
