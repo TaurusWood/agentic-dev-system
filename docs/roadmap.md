@@ -57,6 +57,60 @@ Based on real-project runs:
 
 The workflow must remain fully usable through manual multi-chat execution as a fallback.
 
+### Candidate direction — Working Mode / Phase Contract
+
+Real use has exposed a broader failure mode than coding-stage drift: one unconstrained chat tends to discuss product definition, PRD, architecture, data modeling, implementation, and review in one pass. The result can look complete while each layer remains shallow and later decisions silently pre-empt earlier unresolved work.
+
+The candidate abstraction is a **Working Mode** (or Phase Contract): at any moment, one chat/agent owns one explicit reasoning stage with a bounded responsibility surface.
+
+Examples:
+
+- Product / Discovery;
+- PRD;
+- Architecture / Technical Design;
+- Data Model;
+- Test Design;
+- Implementation;
+- Review;
+- Research / Synthesis / Decision for non-coding work.
+
+A Working Mode should define:
+
+- primary responsibility and objective;
+- authoritative inputs/artifacts to read;
+- decisions that are in scope;
+- decisions that are explicitly out of scope;
+- how cross-stage concerns are recorded without being solved prematurely;
+- expected output artifact(s);
+- exit criteria / handoff condition.
+
+Example: Product Mode may own target users, pain validation, value proposition, MVP scope, user flows, and PRD. It may record technical feasibility questions as open constraints, but it must not choose frameworks, databases, API architecture, or deployment strategy.
+
+This is intentionally more than persona prompting. The hypothesis to validate is that **Project × Working Mode × Relevant Context × Artifact Contract** provides more reliable focus and less semantic drift than ad-hoc prompts, while remaining lightweight enough for normal chat use.
+
+Near-term validation should stay minimal:
+
+1. define a small canonical Working Mode contract;
+2. reuse existing stage Role Contracts where possible rather than creating a parallel system;
+3. test mode-scoped chats manually on real product and development work;
+4. measure whether they reduce premature cross-stage decisions and repeated prompt setup;
+5. only then consider runtime support for persistent chat-to-project/mode binding.
+
+Potential integrations such as WorkspaceLens may project a selected Project, Working Mode, and relevant repository artifacts into a chat. That runtime integration is not part of the methodology requirement: the same contract must remain usable through a manually supplied prompt.
+
+Non-goals for the current phase:
+
+- no generic workflow engine;
+- no mandatory state machine;
+- no DAG or scheduler solely for Working Modes;
+- no automatic creation of the next chat;
+- no separate persistent truth store duplicating repository artifacts;
+- no requirement that every project use the same phase sequence.
+
+The principle is:
+
+> **one execution context may explore deeply, but it should have one explicit decision boundary at a time.**
+
 ## Long-term direction — richer orchestration infrastructure
 
 Runtime-native multi-agent execution is already a supported and preferred mode when the host provides isolated sub-agents. Building a **custom orchestration platform** remains a long-term option, not the current implementation goal.
