@@ -57,59 +57,22 @@ Based on real-project runs:
 
 The workflow must remain fully usable through manual multi-chat execution as a fallback.
 
-### Candidate direction — Working Mode / Phase Contract
+### Decision — lightweight Web Chat Discussion Layer
 
-Real use has exposed a broader failure mode than coding-stage drift: one unconstrained chat tends to discuss product definition, PRD, architecture, data modeling, implementation, and review in one pass. The result can look complete while each layer remains shallow and later decisions silently pre-empt earlier unresolved work.
+The earlier Working Mode / Phase Contract candidate has been superseded by the canonical [Web Chat Discussion Protocol](web-chat/discussion-protocol.md).
 
-The candidate abstraction is a **Working Mode** (or Phase Contract): at any moment, one chat/agent owns one explicit reasoning stage with a bounded responsibility surface.
+The adopted direction is deliberately lighter:
 
-Examples:
+- Web Chat remains an exploration/discussion environment, not a mandatory stage machine;
+- the protocol defines behavior, continuity, evidence discipline, routing, handoff, and chat naming;
+- project-specific state remains in each project's own sources of truth;
+- a thin `Discussion` plugin loads the current canonical protocol from GitHub;
+- the v0.1 plugin routes `:init`, `:judge`, `:new-chat`, and `:local`;
+- Local Agent / Codex formal execution remains governed by `agentic-development`.
 
-- Product / Discovery;
-- PRD;
-- Architecture / Technical Design;
-- Data Model;
-- Test Design;
-- Implementation;
-- Review;
-- Research / Synthesis / Decision for non-coding work.
+The validation question is now practical: does this lightweight protocol reduce repeated setup, context drift, and unnecessary handoff complexity in real Web Chat use without constraining useful exploration?
 
-A Working Mode should define:
-
-- primary responsibility and objective;
-- authoritative inputs/artifacts to read;
-- decisions that are in scope;
-- decisions that are explicitly out of scope;
-- how cross-stage concerns are recorded without being solved prematurely;
-- expected output artifact(s);
-- exit criteria / handoff condition.
-
-Example: Product Mode may own target users, pain validation, value proposition, MVP scope, user flows, and PRD. It may record technical feasibility questions as open constraints, but it must not choose frameworks, databases, API architecture, or deployment strategy.
-
-This is intentionally more than persona prompting. The hypothesis to validate is that **Project × Working Mode × Relevant Context × Artifact Contract** provides more reliable focus and less semantic drift than ad-hoc prompts, while remaining lightweight enough for normal chat use.
-
-Near-term validation should stay minimal:
-
-1. define a small canonical Working Mode contract;
-2. reuse existing stage Role Contracts where possible rather than creating a parallel system;
-3. test mode-scoped chats manually on real product and development work;
-4. measure whether they reduce premature cross-stage decisions and repeated prompt setup;
-5. only then consider runtime support for persistent chat-to-project/mode binding.
-
-Potential integrations such as WorkspaceLens may project a selected Project, Working Mode, and relevant repository artifacts into a chat. That runtime integration is not part of the methodology requirement: the same contract must remain usable through a manually supplied prompt.
-
-Non-goals for the current phase:
-
-- no generic workflow engine;
-- no mandatory state machine;
-- no DAG or scheduler solely for Working Modes;
-- no automatic creation of the next chat;
-- no separate persistent truth store duplicating repository artifacts;
-- no requirement that every project use the same phase sequence.
-
-The principle is:
-
-> **one execution context may explore deeply, but it should have one explicit decision boundary at a time.**
+Do not add a project registry, mandatory mode taxonomy, persistent discussion state service, or discussion-stage engine unless repeated evidence shows the protocol alone is insufficient.
 
 ## Long-term direction — richer orchestration infrastructure
 

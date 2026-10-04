@@ -16,6 +16,31 @@ npx skills add https://github.com/TaurusWood/agentic-dev-system --skill agentic-
 
 A manual multi-chat workflow and a runtime with sub-agents use the same Skill contracts. Manual execution remains supported, but when isolated runtime-native delegation is available the default is automatic continuation across routine stages rather than asking the human to open each next chat.
 
+## Web Chat Discussion Layer
+
+Open-ended Web Chat reasoning is governed separately from the formal execution lifecycle.
+
+The canonical behavior contract is:
+
+- [`docs/web-chat/discussion-protocol.md`](docs/web-chat/discussion-protocol.md)
+
+A thin personal/local ChatGPT plugin package lives under:
+
+- [`plugins/discussion/`](plugins/discussion/)
+
+It dynamically reads the canonical protocol through the GitHub connector instead of embedding a second copy of the rules.
+
+The v0.1 interface is:
+
+```text
+@discussion :init
+@discussion :judge
+@discussion :new-chat
+@discussion :local
+```
+
+The Discussion Layer is intentionally not a Product → Design → Test → Coding stage machine. It governs how a chat reasons and hands off; formal execution semantics remain owned by `agentic-development`.
+
 ## One normative runtime source
 
 To prevent this repository from reproducing the same problem it is trying to solve, runtime protocol semantics have one normative location:
