@@ -1,0 +1,21 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "discussion",
+  "version": "0.1.0",
+  "description": "Lightweight Web Chat discussion initialization, routing, and handoff backed by a canonical GitHub protocol.",
+  "repository": "https://github.com/TaurusWood/agentic-dev-system",
+  "license": "MIT",
+  "keywords": ["discussion", "engineering", "workflow", "handoff"],
+  "extensions": {
+    "com.openai": {
+      "apps": "./.app.json",
+      "interface": {
+        "displayName": "Discussion",
+        "shortDescription": "Initialize and route engineering discussions",
+        "longDescription": "Loads the canonical Web Chat Discussion Protocol from GitHub and provides lightweight init, route judgment, new-chat handoff, and local-agent handoff commands.",
+        "developerName": "TaurusWood",
+        "category": "Productivity"
+      }
+    }
+  }
+}
