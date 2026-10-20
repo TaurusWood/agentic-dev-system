@@ -19,9 +19,14 @@ English version: [`usage.en.md`](usage.en.md)
 
 ## 2. 安装与使用
 
+个人跨仓库使用时，建议为 Codex **全局安装一份**，而不是每个项目复制：
+
 ```bash
-npx skills add https://github.com/TaurusWood/agentic-dev-system --skill agentic-development
+npx skills add https://github.com/TaurusWood/agentic-dev-system --skill agentic-development --global --agent codex --yes
+npx skills update agentic-development --global
 ```
+
+需要同时支持其他 Coding Agent 时，可添加其对应的 `--agent` 选项。项目级安装仅用于团队有意共享或锁定版本的情况；全局版本生效后，应清理旧的同名项目级副本及安装锁记录，其他项目专用 Skill 不受影响。全局安装是**每台电脑的用户级状态**，不会由 GitHub 仓库自动同步。
 
 无论人工新开 Chat，还是 Runtime 派发 Sub-agent，都让新的执行单元先使用 `agentic-development`，直接读取目标项目仓库事实。Runtime 已支持隔离 Sub-agent 时，优先由 Coordinator 自动续跑；人工新开 Chat 是兼容降级路径。
 
