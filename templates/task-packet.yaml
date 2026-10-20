@@ -17,14 +17,20 @@ technical_contract:
   section: ""
   revision: ""
 
-test_contract:
-  revision: ""
-  paths: []
-  evidence:
-    baseline_revision: ""
-    baseline_result: RED | GREEN | NOT_APPLICABLE
-    expected_failure: []
-    justification_if_green: ""
+# Chosen by Technical Design; independent is not the default for routine UI/CRUD.
+test_mode: lightweight | inline | independent
+test_rationale: ""
+
+# Null/omitted unless test_mode is independent; in that case use:
+# test_contract:
+#   revision: ""
+#   paths: []
+#   evidence:
+#     baseline_revision: ""
+#     baseline_result: RED | GREEN | NOT_APPLICABLE
+#     expected_failure: []
+#     justification_if_green: ""
+test_contract: null
 
 applicable_standards: []
 approved_exceptions: []
@@ -35,7 +41,8 @@ read_scope: []
 write_scope: []
 forbidden_scope: []
 
-validation: []
+validation: [] # relevant existing checks + mode-appropriate verification
+focused_acceptance: [] # optional real entry, prerequisites, steps, expected result
 
 freeze_integrity:
   result: NOT_RUN | PASS | FAIL
