@@ -15,8 +15,11 @@ PRD / Product Discussion
     ↓ PRODUCT FREEZE
 Technical Design + module slicing + initial Task Packets + dependency graph
     ↓ DESIGN FREEZE
-Test preparation for one or more ready bounded tasks
-    ↓ TEST FREEZE per task
+Per-task test mode: lightweight / inline / independent
+    ├ lightweight: existing checks + focused acceptance
+    ├ inline: Coding adds targeted tests as justified
+    └ independent: Test preparation → TEST FREEZE
+    ↓ READY_SET
 Coding → fresh Module CR for ready tasks
     ↓ dependency unlock / next execution wave
 Integration / top-level coding
@@ -39,9 +42,9 @@ After PRODUCT FREEZE, move to Technical Design. Do not ask Coding to infer produ
 First classify the defect:
 
 1. **Implementation defect** — frozen product/design contract is correct, code violates it.
-   - Establish adequate regression coverage.
-   - Produce baseline sensitivity evidence for the regression test when applicable.
-   - TEST FREEZE, then Coding -> Module CR.
+   - Choose a test mode based on regression risk; favor a focused regression test when the defect is reproducible.
+   - Use baseline sensitivity evidence and TEST FREEZE when independent tests are warranted; otherwise establish pre-fix failure and post-fix results within the task as practical.
+   - Continue to Coding -> Module CR without a mandatory Test stage.
 
 2. **Product-contract defect or missing product rule** — repository product truth disagrees with intended behavior.
    - Return to Product/PRD.
@@ -59,16 +62,26 @@ When user-visible behavior should remain unchanged:
 
 - record the behavior/invariants that must remain stable;
 - define the technical objective and module boundary;
-- establish regression expectations;
-- continue through Technical Design -> Test -> Coding -> CR.
+- establish proportionate regression expectations and a test mode;
+- continue through Technical Design -> optional independent Test -> Coding -> CR.
 
 The product artifact may be lightweight, but invariant preservation must be explicit.
 
+## Risk-based test routing
+
+Technical Design records one `test_mode` per bounded task, based on the consequence of an error, semantic complexity, regression history, and the cost of observing correctness. Category labels alone do not determine risk.
+
+- **`lightweight`** — default for routine, directly observable UI, layout, navigation, and simple CRUD changes when human smoke checks are cheap. Do not create new tests merely to fill a stage; run relevant existing checks and provide a focused acceptance path.
+- **`inline`** — Coding writes small, targeted unit/integration/regression tests alongside implementation when automated checks will prevent meaningful future regressions. No separate Test Agent or TEST FREEZE is required.
+- **`independent`** — for complex business rules, computations, algorithms, complex/consequential state transitions, or materially risky authorization, financial, data-integrity, and destructive changes. Use independent Test preparation, sensitivity evidence when applicable, review, and TEST FREEZE before Coding.
+
+These are starting defaults, not an exemption for UI logic: complex form rules, irreversible actions, permissions, or high-cost regressions may justify `inline` or `independent`. Existing tests, type checks, and other relevant deterministic checks still run in every mode. A green suite is not proof of correct end-to-end business behavior; inspect observed results and seek focused human acceptance where necessary. If no trustworthy automated oracle exists, do not manufacture brittle frozen assertions: use the most reliable observable verification and disclose the residual uncertainty.
+
 ## Bounded tasks, Test batching, and execution waves
 
-Technical Design may split one iteration into bounded tasks and declares their dependencies. The Task Packet remains the unit of scope, evidence, freeze state, Coding, and review even when several tasks share one Test execution context.
+Technical Design may split one iteration into bounded tasks and declares their dependencies and test modes. The Task Packet remains the unit of scope, verification evidence, Coding, and review. Only `independent` tasks enter the separate Test stage and acquire TEST FREEZE. Compatible independent tasks may share one Test execution context.
 
-A Test execution may batch multiple explicitly assigned tasks when all of the following hold:
+An independent Test execution may batch multiple explicitly assigned `independent` tasks when all of the following hold:
 
 - the same Test authority and compatible authoritative inputs apply;
 - Product/Design freezes and each task's declared baseline remain valid;
@@ -78,7 +91,7 @@ A Test execution may batch multiple explicitly assigned tasks when all of the fo
 
 Do not batch merely to reduce chat count when it weakens those boundaries. Split the Test work when baseline assumptions, fixtures, module ownership, or dependency state differ materially.
 
-After TEST FREEZE, execute Coding and Module CR per bounded task. Coding and independent CR are distinct authority contexts: when the runtime supports isolation, Module CR must start in a fresh reasoning context and reconstruct the task from repository truth, frozen revisions, Task Packet, and implementation diff. Do not resume the Coding agent's reasoning transcript as the reviewer.
+After each task's required preconditions are met (including TEST FREEZE only for `independent`), execute Coding and Module CR per bounded task. Coding and independent CR are distinct authority contexts: when the runtime supports isolation, Module CR must start in a fresh reasoning context and reconstruct the task from repository truth, frozen revisions, Task Packet, and implementation diff. Do not resume the Coding agent's reasoning transcript as the reviewer.
 
 ### Context isolation vs workspace isolation
 
@@ -91,13 +104,14 @@ A fresh Coding or CR sub-agent may use the shared workspace when execution is se
 
 ## READY_SET and parallel execution
 
-After relevant TEST FREEZEs are established, the coordinator computes a `READY_SET` before choosing Coding work.
+After required preconditions for each test mode are met, the coordinator computes a `READY_SET` before choosing Coding work.
 
 A task is READY when:
 
-- its required Product/Design/Test freezes are established and pass integrity checks;
+- its required Product/Design freezes and, only for `independent`, TEST FREEZE are established and pass integrity checks;
 - every declared dependency required before Coding is complete at the revision expected by the task;
-- its execution baseline is committed and contains the frozen artifacts it must consume;
+- its execution baseline is committed and contains all applicable frozen artifacts it must consume;
+- `test_mode` and corresponding validation/acceptance expectations are recorded in the Task Packet;
 - no canonical stage stop condition currently blocks the task.
 
 If `READY_SET` contains multiple tasks, safe parallel fan-out is the default when the runtime supports concurrent isolated sub-agents and worktrees.
@@ -127,8 +141,8 @@ For each safe parallel task:
 Conceptually:
 
 ```text
-compatible Test preparation
-        ↓ per-task TEST FREEZE
+required verification routing
+  ↓ TEST FREEZE only for independent
      compute READY_SET
         ↓
  conflict / dependency classification
@@ -153,7 +167,7 @@ This replaces a mechanical requirement for either "one chat per stage per slice"
 
 When the current stage completes successfully:
 
-1. record/consume the stage result and Agent Handoff as coordinator state;
+1. record/consume the stage result and Agent Handoff as coordinator state, routing only `independent` tasks through the Test stage;
 2. recompute the `READY_SET` from Task Packets, dependency/review state, freezes, and revisions;
 3. classify READY tasks for parallel safety using the canonical conflict reasons above;
 4. if multiple safe tasks and runtime-native worktree/concurrent delegation are available, fan them out in parallel by default;
@@ -174,6 +188,10 @@ The orchestrator returns control to the human only with one of these stop reason
 Do not invent routine additional stop reasons. Map stage-specific stop conditions onto the closest reason above and include the precise blocker/decision in the handoff.
 
 A stage or child agent finishing successfully is never itself a stop reason.
+
+## Focused human acceptance
+
+For a user-observable UI/business module whose behavior cannot be established by automated checks alone, return `FINAL_ACCEPTANCE_REQUIRED` after its reviewed, runnable module/batch and **before continuing to another dependent module or page**, unless the user explicitly authorized uninterrupted progression. Provide the real entry point, prerequisites, shortest manual path, expected behavior, and unverified areas. Do not force this stop for every minor CSS/text change or use it as a substitute for deterministic checks.
 
 ## Human vs runtime coordination
 

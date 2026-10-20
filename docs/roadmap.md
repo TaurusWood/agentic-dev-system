@@ -11,8 +11,8 @@ Current objective:
 Established baseline:
 
 - repository-as-truth principle;
-- PRD → Technical Design → Test → Coding → CR → Integration → Final CR lifecycle;
-- Product / Design / Test freeze semantics;
+- PRD → Technical Design → risk-based verification (independent Test only when warranted) → Coding → CR → Integration → Final CR lifecycle;
+- Product / Design freeze semantics and conditional independent TEST FREEZE;
 - bounded task execution with compatible Test batching, READY-set scheduling, safe worktree fan-out, dependency waves, and isolated Coding / Module CR contexts;
 - Freeze Break Request;
 - language-independent engineering standards;
@@ -28,7 +28,8 @@ Validation questions:
 
 - Does PRD + Technical Design separation reduce product/implementation drift?
 - Does vertical module slicing reduce context size and rework?
-- Does TEST FREEZE prevent implementation-driven test weakening without excessive friction?
+- Do lightweight/inline paths lower token and elapsed-time cost without increasing escaped material defects?
+- Does independent TEST FREEZE prevent implementation-driven test weakening in high-risk tasks without excessive friction?
 - Which freeze breaks are legitimate?
 - Are stage Role Contracts sufficient to prevent overreach?
 - Does Human Brief materially reduce cognitive load while preserving necessary decisions?
@@ -36,7 +37,8 @@ Validation questions:
 - Can runtime-native delegation remove routine human orchestration without weakening Coding/Review independence?
 - Does READY-set + worktree fan-out materially reduce wall-clock time on real multi-task iterations?
 - Which conflict classes correctly force serialization, and where are we still being too conservative or too aggressive?
-- When does Test batching reduce overhead without introducing cross-task coupling?
+- When does batching independent Test work reduce overhead without introducing cross-task coupling?
+- Does focused module-level human acceptance detect false-green business journeys at lower cost than more UI tests?
 - Do standardized prompts improve high-frequency execution compared with ad-hoc natural-language commands?
 - Which prompt fields repeatedly prove useful or unnecessary?
 

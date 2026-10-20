@@ -31,8 +31,8 @@ Requirement / finding
 → PRODUCT FREEZE
 → Technical Design + Task Packet
 → DESIGN FREEZE
-→ Test preparation for one or more ready tasks
-→ TEST FREEZE per task
+→ Choose lightweight / inline / independent verification per task
+→ Independent only: Test preparation / TEST FREEZE
 → READY_SET → parallel Coding/worktrees → fresh Module CR per task
 → Integration / next dependency wave
 → Final CR
@@ -54,23 +54,25 @@ A freeze requires:
 
 Before writing, downstream stages verify frozen paths against recorded revisions. An unexplained mismatch stops execution rather than allowing the agent to choose the convenient version.
 
-## 5. TEST FREEZE also needs discrimination
+## 5. Risk-based verification and TEST FREEZE
 
-For new behavior or a bug regression expected to be absent/broken at `baseline_revision`, the relevant test should be run at that baseline and fail for the expected semantic reason before TEST FREEZE.
+Routine observable UI/navigation and simple CRUD tasks generally use `lightweight` verification: existing checks plus focused manual acceptance, without ceremonial new tests. `inline` adds targeted tests during Coding when they offer real regression value. Complex business rules, computations, algorithms, consequential state transitions, and consequential permissions/financial/data-integrity work use `independent` Test and TEST FREEZE. UI is not an exemption for high-risk logic.
+
+Only for `independent` new behavior or a bug regression expected to be absent/broken at `baseline_revision`, the relevant test should be run at that baseline and fail for the expected semantic reason before TEST FREEZE.
 
 If baseline is already GREEN, record a valid justification instead of manufacturing RED.
 
-This addresses the second false-green mode: a test contract that was weak from the start.
+This mitigates, but cannot eliminate, false greens: even discriminating tests do not prove the complete business journey.
 
 ## 6. Task Packet ownership
 
-Technical Design creates the initial Task Packet with repository/branch/`base_revision`, Product/Design revisions, scope, dependencies, validation, and stop conditions.
+Technical Design creates the initial Task Packet with repository/branch/`base_revision`, Product/Design revisions, scope, dependencies, `test_mode`, verification/acceptance expectations, and stop conditions.
 
-Test owns only the packet's `test_contract` and test-evidence fields before TEST FREEZE. A coordinator may update execution metadata such as phase/status/result revision, but it does not silently rewrite frozen contract fields.
+Only an independent task has a Test stage and `test_contract` / test-evidence / TEST FREEZE; other tasks use `test_contract: null`. Coding may add scoped non-frozen inline tests. A coordinator may update execution metadata such as phase/status/result revision, but it does not silently rewrite frozen contract fields.
 
 ## 7. Runtime-native orchestration and manual fallback
 
-If the runtime provides isolated sub-agents/threads, use one coordinator to continue automatically across routine stages. Compatible Test tasks may be batched in one Test context while preserving separate Task Packets, evidence, and TEST FREEZE revisions. Coding and Module CR use separate reasoning contexts; do not resume or reuse the Coding transcript as the independent review context.
+If the runtime provides isolated sub-agents/threads, use one coordinator to continue automatically across routine stages. Compatible independent Test tasks may be batched in one Test context while preserving separate Task Packets, evidence, and TEST FREEZE revisions. Coding and Module CR use separate reasoning contexts; do not resume or reuse the Coding transcript as the independent review context.
 
 Reasoning/context isolation does not imply a separate worktree. Shared workspace is valid for serialized agents when required state is uncommitted.
 
@@ -82,8 +84,8 @@ When delegation is unavailable, use the same protocol manually:
 
 ```text
 Product Chat
-→ Design Chat
-→ Test Chat / compatible Test batch
+→ Design Chat / test_mode selection
+→ [independent only] Test Chat / compatible Test batch
 → Coding Chat
 → fresh Module CR Chat
 → ...
@@ -91,7 +93,7 @@ Product Chat
 → Final CR Chat
 ```
 
-Every execution context reconstructs state from repository truth + Task Packet rather than a long previous-chat summary.
+Every execution context reconstructs state from repository truth + Task Packet rather than a long previous-chat summary. Return for focused human acceptance at runnable user-facing module boundaries when automated evidence is insufficient, before the next dependent module/page unless uninterrupted continuation was explicitly authorized. Do not add gates for trivial changes.
 
 ## 8. Prompt composition
 

@@ -4,13 +4,13 @@ Canonical authority: use the installed `agentic-development` skill. Coding autho
 
 ## Goal
 
-Implement the assigned bounded task with the smallest justified production-code change that satisfies the frozen contracts.
+Implement the assigned bounded task with the smallest justified change and mode-appropriate verification, honoring only applicable freezes.
 
 ## Required inputs
 
 - repository / branch / Task Packet `base_revision`;
-- PRODUCT, DESIGN, and TEST FREEZE paths/revisions;
-- Task Packet, applicable standards, dependencies, and validation commands;
+- PRODUCT and DESIGN FREEZE paths/revisions; TEST FREEZE only if `test_mode: independent`;
+- Task Packet `test_mode`, applicable standards, dependencies, validation commands, and focused acceptance expectations;
 - current repository state.
 
 ## Before writing
@@ -20,10 +20,10 @@ Perform the canonical freeze-integrity and baseline/dependency preflight. Stop i
 ## Task-specific work
 
 - inspect real code paths before editing;
-- change production files only within declared write scope;
-- preserve module ownership, public contracts, explicit failure semantics, and frozen tests;
-- run required validation;
-- self-review the diff against the Task Packet and frozen contracts.
+- change production files only within declared write scope; if `test_mode: inline`, add only justified non-frozen tests within explicitly authorized test scope;
+- preserve module ownership, public contracts, explicit failure semantics, and any applicable frozen tests;
+- run relevant existing checks in every mode and mode-appropriate additional checks; do not add ceremonial tests for lightweight work;
+- self-review the diff against the Task Packet and applicable frozen contracts; for user-facing modules provide the real entry point and focused manual acceptance path.
 
 ## Output
 

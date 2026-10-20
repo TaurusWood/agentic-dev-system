@@ -33,8 +33,8 @@ Requirement / finding
 → PRODUCT FREEZE
 → Technical Design + Task Packet
 → DESIGN FREEZE
-→ 对一个或多个 Ready Task 进行 Test 准备
-→ 每个 Task 独立 TEST FREEZE
+→ 按任务风险选择 lightweight / inline / independent
+→ 仅 independent：Test 准备及 TEST FREEZE
 → READY_SET → 独立 worktree 并行 Coding → 每任务独立 Module CR
 → Integration / 下一依赖波次
 → Final CR
@@ -56,9 +56,11 @@ Freeze 不是一句“已冻结”。必须满足：
 
 下游在写入前必须检查 frozen paths 是否仍与记录 revision 一致；发现不明变化时停止，而不是自行选择“旧版本还是当前版本”。
 
-## 5. TEST FREEZE 不只防止改测试
+## 5. 风险驱动的测试与 TEST FREEZE
 
-对于新增行为或 Bug regression，如果目标行为按定义在 `baseline_revision` 上尚未正确存在，应在 TEST FREEZE 前验证相关测试：
+普通 UI、导航和简单 CRUD 默认采用 `lightweight`：沿用已有检查，提供可操作的人工验收路径，不为流程形式新增用例。有明显回归价值时采用 `inline`，由 Coding 补充聚焦测试。复杂业务规则、计算、算法、复杂状态流和重要权限/财务/数据完整性操作采用 `independent`，才进入独立 Test 与 TEST FREEZE。具有复杂规则的 UI 不因页面属性而豁免测试。
+
+只有 `independent` 模式的新增行为或 Bug regression，如果目标行为按定义在 `baseline_revision` 上尚未正确存在，才应在 TEST FREEZE 前验证相关测试：
 
 - 在 baseline 上运行；
 - 因预期语义原因失败；
@@ -66,7 +68,7 @@ Freeze 不是一句“已冻结”。必须满足：
 
 如果 baseline 已经 GREEN，不强行制造 RED，而是说明为什么仍然是有效测试合同。
 
-这用于防止“测试从一开始就太弱，但 Coding/CR 全绿”的假绿。
+这用于减少“测试从一开始就太弱，但 Coding/CR 全绿”的假绿；即便通过也不代表整个业务流程已验收。
 
 ## 6. Task Packet
 
@@ -74,16 +76,16 @@ Technical Design 创建初始 Task Packet，至少固定：
 
 - repository / branch / `base_revision`；
 - Product / Design contract revisions；
-- task scope / dependencies；
+- task scope / dependencies / `test_mode`；
 - write / forbidden scope；
-- validation；
+- validation / focused acceptance（如适用）；
 - stop conditions。
 
-Test 阶段只拥有其中 `test_contract` 和 test evidence，直到 TEST FREEZE。Coordinator 可以改 phase/status/result revision 等执行状态，但不能偷偷改 frozen contract 字段。
+只有 independent 任务拥有 Test Stage 和对应的 `test_contract` / test evidence / TEST FREEZE；其他任务可设 `test_contract: null`。inline 测试由 Coding 在授权范围内编写。Coordinator 可以改 phase/status/result revision 等执行状态，但不能偷偷改 frozen contract 字段。
 
 ## 7. Runtime 原生编排与人工降级
 
-Runtime 已提供隔离 Sub-agent / Thread 时，默认由一个 Coordinator 在常规阶段之间自动续跑。兼容的 Test Task 可以在同一个 Test 上下文中批处理，但每个 Task 仍独立维护 Task Packet、test evidence 和 TEST FREEZE revision。
+Runtime 已提供隔离 Sub-agent / Thread 时，默认由一个 Coordinator 在常规阶段之间自动续跑。只有兼容的 independent Test Task 才可在同一个 Test 上下文中批处理，仍独立维护 Task Packet、test evidence 和 TEST FREEZE revision。
 
 Coding 与 Module CR 必须使用不同的**推理上下文**；不要通过 resume/continue 复用 Coding Agent 的推理 transcript 来充当独立审查。推理/Context 隔离与 filesystem/worktree 隔离是两件事：串行执行且需要看到未提交状态时，可以让新的 Sub-agent 使用 shared workspace；只有仓库状态和并发需求适合时才使用 worktree。
 
@@ -95,8 +97,8 @@ Runtime 无法安全 delegation 时，再降级为人工方式：
 
 ```text
 Product Chat
-→ Design Chat
-→ Test Chat / compatible Test batch
+→ Design Chat / test_mode 选择
+→ [仅 independent] Test Chat / compatible Test batch
 → Coding Chat
 → 独立新上下文 Module CR Chat
 → ...
@@ -104,7 +106,7 @@ Product Chat
 → Final CR Chat
 ```
 
-每个执行上下文都从仓库与 Task Packet 重新读取事实，而不是依赖上一 Chat 的长总结。
+每个执行上下文都从仓库与 Task Packet 重新读取事实，而不是依赖上一 Chat 的长总结。面向用户的可运行模块，如自动化证据无法覆盖真实行为，应在进入下个依赖模块/页面前提供聚焦人工验收，不为微小文案样式变更额外设置关卡。
 
 ## 8. Prompt Generator
 

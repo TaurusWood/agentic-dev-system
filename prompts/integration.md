@@ -9,7 +9,7 @@ Assemble reviewed module results into one coherent system without taking ownersh
 ## Required inputs
 
 - repository / integration branch / baseline;
-- frozen Product/Design/Test inputs;
+- frozen Product/Design inputs and any applicable independent Test freezes;
 - reviewed module result revisions and verdicts;
 - dependency order and regression commands.
 

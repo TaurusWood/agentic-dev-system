@@ -32,6 +32,9 @@ technical_contract:
   section: BUILD-04
   revision: ghi789
 
+test_mode: independent
+test_rationale: complex state transitions with consequential failures
+
 test_contract:
   revision: jkl012
   paths:
@@ -53,12 +56,14 @@ validation:
   - ./scripts/run_tests.mjs build_planning
 ```
 
+For `test_mode: lightweight` or `inline`, omit or set `test_contract: null`; no TEST FREEZE revision or baseline sensitivity evidence is required. `lightweight` runs relevant existing checks and gives a focused observable acceptance path; `inline` allows Coding to add scoped, non-frozen tests. `independent` retains the test-first contract above for complex/high-risk semantics. UI labels alone do not determine risk.
+
 ## 3. Ownership
 
 Task Packet fields are not all owned by the coordinator.
 
-- **Technical Design** creates the initial packet and owns task goal, repository/base revision, technical scope, dependencies, applicable standards, validation expectations, and stop conditions until DESIGN FREEZE.
-- **Test** owns `test_contract` paths/revision/evidence until TEST FREEZE.
+- **Technical Design** creates the initial packet and owns task goal, repository/base revision, technical scope, dependencies, `test_mode`, applicable standards, validation/acceptance expectations, and stop conditions until DESIGN FREEZE.
+- **Test** owns `test_contract` paths/revision/evidence until TEST FREEZE, but only for `independent` tasks. Coding owns any inline non-frozen test additions within the authorized scope.
 - **Coordinator** may update execution metadata such as phase, status, completed/result revisions, and routing. It must not silently rewrite frozen Product/Design/Test contract fields.
 - **Coding / Review / Integration** consume the packet. If a contract field is stale or wrong, they escalate to its owning stage.
 
@@ -86,11 +91,11 @@ Write scope is part of task correctness, not a convenience hint. Keep it as narr
 ### Declare frozen revisions
 A task without known upstream revisions is vulnerable to moving-target drift.
 
-### Declare test sensitivity evidence
-For new behavior or bug regression expected to fail at baseline, TEST FREEZE should record that the relevant test failed at `baseline_revision` for the expected semantic reason. If it was already green, record a justification instead of manufacturing RED.
+### Declare test sensitivity evidence only when applicable
+For `independent` mode, new behavior or bug regression expected to fail at baseline should record that the relevant test failed at `baseline_revision` for the expected semantic reason. If it was already green, record a justification instead of manufacturing RED. Do not require a fabricated TEST FREEZE for other modes.
 
 ### Declare dependencies and validation
-“Looks correct” is not a done condition. Dependencies and validation commands must be explicit. Dependency edges should distinguish tasks that must complete before Coding from tasks that are merely related, because the coordinator derives each execution wave's `READY_SET` from them.
+“Looks correct” is not a done condition. Dependencies and relevant validation commands must be explicit. For user-visible modules, a short focused acceptance path may be recorded; tests passing never alone establish business acceptance. Dependency edges should distinguish tasks that must complete before Coding from tasks that are merely related, because the coordinator derives each execution wave's `READY_SET` from them.
 
 ### Declare stop conditions
 The packet must tell the agent when independent reasoning is no longer authorized.

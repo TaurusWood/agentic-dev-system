@@ -9,7 +9,7 @@ Independently verify that the integrated result is coherent as a whole and still
 ## Required inputs
 
 - repository and integrated result revision;
-- PRODUCT/DESIGN/TEST FREEZE revisions;
+- applicable PRODUCT/DESIGN freezes and any TEST FREEZE for `independent` tasks;
 - Task Packets and module CR verdicts;
 - full validation output.
 
@@ -17,7 +17,7 @@ Independently verify that the integrated result is coherent as a whole and still
 
 Check complete PRD coverage, end-to-end journeys, cross-module contracts, shared terminology, state transitions, regression/compatibility, ownership conflicts, freeze integrity, integration-only behavior, and residual risk/complexity.
 
-Do not treat module-level PASS as proof of system-level correctness.
+Do not treat module-level PASS or green tests as proof of system-level or business-flow correctness. Compare observable flows with product acceptance expectations.
 
 ## Output
 

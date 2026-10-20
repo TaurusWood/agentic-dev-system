@@ -11,7 +11,7 @@ Approved user/player-visible behavior, scope, and product boundaries are read-on
 Approved Technical Design, module boundaries, public contracts, terminology, and task slicing are read-only for Test/Coding unless reopened.
 
 ### TEST FREEZE
-Accepted test contract is read-only for Coding.
+Accepted test contract is read-only for Coding. It is established only for tasks using `test_mode: independent`; lightweight and inline tasks have no TEST FREEZE.
 
 Freeze means downstream read-only by default, not immutable forever.
 
@@ -26,7 +26,7 @@ A freeze is established only when all of the following are true:
 
 A phrase such as `ready to freeze`, `proposed freeze`, or an uncommitted working-tree state is not an established freeze.
 
-For TEST FREEZE on a new behavior or bug regression, stage-specific evidence normally includes baseline sensitivity:
+For an applicable TEST FREEZE on a new behavior or bug regression, stage-specific evidence normally includes baseline sensitivity:
 
 ```yaml
 test_evidence:
@@ -41,7 +41,7 @@ The objective is not ceremonial RED. It is evidence that the test contract can d
 
 ## Downstream freeze-integrity preflight
 
-Before a downstream stage writes, it must verify every consumed freeze against the current repository state.
+Before a downstream stage writes, it must verify every **applicable** consumed freeze against the current repository state. In `lightweight` and `inline` mode, `freeze_revisions.test` is null; absence of TEST FREEZE is valid and must not block Coding.
 
 Conceptually:
 
@@ -116,7 +116,8 @@ result_revision: <sha>
 authoritative_inputs:
   product: <path/revision>
   design: <path/revision>
-  tests: <path/revision>
+  tests: <path/revision-or-null>
+test_mode: lightweight | inline | independent
 freeze_revisions:
   product: <sha-or-null>
   design: <sha-or-null>

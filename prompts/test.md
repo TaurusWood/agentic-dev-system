@@ -4,18 +4,18 @@ Canonical authority: use the installed `agentic-development` skill. Test authori
 
 ## Goal
 
-Create discriminating test contracts for one bounded task or an explicitly compatible batch of bounded tasks without redefining Product or Technical Design.
+For tasks explicitly assigned `test_mode: independent`, create discriminating test contracts without redefining Product or Technical Design. Do not launch this stage for lightweight or inline tasks.
 
 ## Required inputs
 
 - repository / branch / task `base_revision` values;
 - PRODUCT FREEZE and DESIGN FREEZE paths/revisions;
-- assigned Task Packet(s);
+- assigned Task Packet(s), each with `test_mode: independent`;
 - current code/tests/fixtures.
 
 ## Before writing
 
-Perform canonical Product/Design freeze-integrity preflight for every assigned task. Do not batch tasks whose frozen inputs, baselines, fixture changes, or write scopes create correctness-relevant coupling.
+Verify every assigned task requires independent testing, then perform canonical Product/Design freeze-integrity preflight. Do not batch tasks whose frozen inputs, baselines, fixture changes, or write scopes create correctness-relevant coupling.
 
 ## Task-specific work
 

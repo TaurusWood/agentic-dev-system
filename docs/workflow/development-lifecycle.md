@@ -15,8 +15,10 @@ PRD / Product Discussion
     ↓ PRODUCT FREEZE
 Technical Design + module slicing + initial Task Packets
     ↓ DESIGN FREEZE
-Test preparation for one or more ready bounded tasks
-    ↓ TEST FREEZE per task
+Risk-based test mode per task
+    ├ lightweight → existing checks / focused acceptance
+    ├ inline → scoped tests during Coding
+    └ independent → Test preparation / TEST FREEZE
 READY_SET → parallel Coding/worktrees → fresh Module CR per task
     ↓ Integration / dependency unlock / next execution wave
 Integration / top-level coding
@@ -38,21 +40,21 @@ PRODUCT FREEZE requires the required product approval plus a committed revision.
 
 Technical Design maps frozen product intent onto the actual repository: module ownership, public contracts, invariants, state/data flow, dependencies, compatibility needs, and bounded task slices.
 
-It creates the initial Task Packet for each slice, including repository identity, `base_revision`, scope, dependencies, validation, and stop conditions.
+It creates the initial Task Packet for each slice, including repository identity, `base_revision`, scope, dependencies, `test_mode`, validation/acceptance, and stop conditions.
 
 DESIGN FREEZE requires design review plus a committed revision.
 
-## 5. Test Contract
+## 5. Risk-based verification
 
-Test proves the frozen Product and Design contracts. One Test execution context may prepare several compatible bounded tasks when their frozen inputs, baselines, and fixtures do not create cross-task coupling. Each task still owns separate test-contract/evidence fields and establishes its own TEST FREEZE.
+Routine, directly observable UI and simple CRUD work normally uses `lightweight` verification: existing checks and a focused manual acceptance path, without generating new tests solely for process compliance. `inline` lets Coding add targeted non-frozen regression tests where useful. Complex business rules, calculations, algorithms, consequential state transitions, and high-risk data/permissions work use `independent` Test preparation with per-task TEST FREEZE.
 
-For new behavior or a bug regression expected to fail at the declared baseline, the test should be run against `baseline_revision` and fail for the expected semantic reason. This is sensitivity evidence, not ceremonial RED. If the test is already green, Test records why that result is valid.
+Only independent tasks enter the Test stage. Compatible tasks may share a Test context without cross-task semantic coupling. For a new behavior or regression expected to fail at baseline, the test should fail at `baseline_revision` for the expected semantic reason; an already-green baseline needs justification. Independent review and a committed revision establish TEST FREEZE.
 
-TEST FREEZE requires the required independent test review plus a committed revision.
+Every mode still runs relevant existing deterministic checks. Test PASS, including sensitivity evidence, does not prove the complete business journey.
 
 ## 6. Coding and parallel waves
 
-Before writing, Coding verifies Product/Design/Test freeze integrity and the declared baseline/dependencies. It writes only production code inside the bounded scope.
+Before writing, Coding verifies Product/Design freeze integrity and TEST FREEZE only when applicable, plus the declared baseline/dependencies. In inline mode it may write non-frozen tests within authorized scope.
 
 The coordinator computes the current `READY_SET`. Independent READY tasks should fan out to separate runtime-native worktrees and isolated Coding contexts when safe. Tasks remain serialized when they have dependency edges, competing write scopes, required shared uncommitted state, global-resource conflicts, insufficient isolation, or resource/runtime limits.
 
@@ -71,5 +73,7 @@ Integration assembles reviewed modules without taking ownership of module behavi
 Final CR verifies the integrated user journey, PRD coverage, cross-module contracts, regression, ownership, and freeze integrity. Module PASS is evidence, not proof of whole-system correctness.
 
 ## 9. Human/agent split
+
+For a runnable user-facing module whose actual behavior still needs human judgment, return focused acceptance instructions before starting the next dependent module/page unless the user has approved uninterrupted progression. Do not force an acceptance stop for trivial edits with sufficient checks.
 
 Technical continuity is preserved through versioned repository artifacts and structured Agent Handoff rather than long chat summaries. When runtime-native delegation exists, routine stage completion is an internal transition and should trigger the next eligible stage automatically without a Human Brief. Human-facing output occurs when the workflow completes or returns control for a material decision, Freeze Break, blocker/delegation failure, or focused final acceptance.
