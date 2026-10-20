@@ -1,6 +1,6 @@
 ---
 name: agentic-development
-description: Use for non-trivial software development work that benefits from staged product/design/test/coding/review flow, including feature work, UI/UX changes, bug fixes, refactors, E2E findings, freeze handling, runtime-native delegation, and manual fallback handoff.
+description: Use for non-trivial software development work that benefits from risk-based verification and staged product/design/coding/review flow, including feature work, UI/UX changes, bug fixes, refactors, E2E findings, freeze handling, runtime-native delegation, and manual fallback handoff.
 license: MIT
 compatibility: Requires access to the target project repository. Runtime-native isolated delegation is preferred when available; manual multi-chat execution is the supported fallback.
 metadata:
@@ -56,7 +56,7 @@ Typical routing:
 - UX/UE or gameplay behavior still being explored -> PRD / Product Discussion.
 - Frozen product intent that needs implementation planning -> Technical Design.
 - Frozen design that needs acceptance coverage -> Test.
-- Frozen tests/design ready for implementation -> Coding.
+- Frozen design ready for implementation -> choose `test_mode` from `references/workflow.md`; enter independent Test only when warranted, otherwise Coding.
 - Completed module implementation -> Module CR.
 - Several reviewed modules need assembly -> Integration / top-level coding.
 - Integrated iteration needs system-level verification -> Final CR.
@@ -78,8 +78,8 @@ Critical rules:
 
 - a freeze is established only at a committed revision after the owning stage's required review/approval;
 - downstream stages verify frozen paths before editing;
-- after TEST FREEZE, Coding must not edit frozen tests merely to regain green status;
-- a new/bug-regression test contract normally needs baseline sensitivity evidence before TEST FREEZE.
+- when TEST FREEZE exists, Coding must not edit its frozen tests merely to regain green status;
+- when independent Test/TEST FREEZE applies, a new/bug-regression test contract normally needs baseline sensitivity evidence; lightweight/inline tasks do not manufacture a Test Freeze.
 
 Raise `FREEZE_BREAK_REQUIRED` to the owning stage when a frozen contract is invalid instead of repairing it downstream.
 
@@ -103,10 +103,10 @@ When the runtime supports isolated sub-agents/threads, default to runtime-native
 
 - the coordinator continues across successful routine stage transitions without waiting for the human to open a new chat;
 - each child reads repository truth directly and verifies declared base/freeze revisions before writing;
-- compatible Test tasks may be batched in one Test execution context when `references/workflow.md` batching conditions hold; each task still keeps independent Task Packet fields, evidence, and TEST FREEZE;
+- independent Test tasks may be batched in one Test execution context when `references/workflow.md` batching conditions hold; lightweight/inline tasks bypass that stage, with per-task verification expectations preserved;
 - Coding and Module CR must use separate isolated **reasoning contexts**; do not resume or reuse the Coding agent's reasoning transcript as independent review;
 - reasoning/context isolation and filesystem/worktree isolation are separate concerns; a fresh sub-agent may use a shared workspace when serialized access is safe, while worktrees are used only when repository state and concurrency make them appropriate;
-- before selecting the next Coding task, compute the current `READY_SET` from dependency/review state;
+- before selecting the next Coding task, compute the current `READY_SET` from dependency/review state and applicable freezes for its test mode;
 - when multiple READY tasks are independent and safe filesystem isolation is available, parallel Coding in separate worktrees is the default rather than an optional optimization;
 - serialize tasks when dependencies, overlapping write scopes, required shared uncommitted state, shared global resources, or insufficient isolation make parallel writes unsafe;
 - each parallel Coding task gets its own isolated reasoning context and, when fan-out is safe, its own worktree/branch from a committed baseline containing the required frozen artifacts;
@@ -123,6 +123,8 @@ Do not build or assume a custom DAG engine, scheduler, worktree manager, or agen
 ## Scope discipline
 
 - Keep module work vertical and bounded.
+- Prefer existing deterministic checks and focused observable acceptance over expanding test suites for routine UI/CRUD work.
+- Use independent Test authority for complex or high-risk semantics; GREEN tests never alone prove end-to-end business correctness.
 - Do not absorb unrelated findings unless they block correctness.
 - Record non-blocking findings for backlog/handoff.
 - Do not let Test redesign Product, Coding redesign Tests, or CR silently rewrite upstream contracts.
