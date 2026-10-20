@@ -16,10 +16,10 @@ Coordinate one requirement/version iteration from repository truth while minimiz
 
 ## Coordination work
 
-- compute the current `READY_SET` from declared dependencies, freeze/review state, and revisions before selecting Coding work;
+- compute the current `READY_SET` from declared dependencies, test modes, applicable freeze/review state, and revisions before selecting Coding work;
 - determine ORCHESTRATED vs MANUAL execution mode before dispatching work;
 - when isolated runtime-native delegation is available, continue automatically across routine stages until a canonical orchestrator stop reason requires control to return to the human;
-- batch compatible Test work when the canonical workflow permits it while preserving per-task Task Packets, evidence, and TEST FREEZE revisions;
+- route only `independent` tasks to the Test stage; batch compatible independent Test work when permitted, preserving per-task evidence and TEST FREEZE revisions;
 - delegate Coding and Module CR to separate reasoning contexts; never reuse or resume the Coding agent's reasoning context as the independent CR context;
 - choose filesystem/worktree isolation separately from reasoning isolation; shared workspace is valid for serialized agents when required repository state is uncommitted;
 - when two or more READY Coding tasks have no dependency/write/shared-state/global-resource conflict and runtime-native worktrees are available, fan them out concurrently by default;
@@ -28,11 +28,12 @@ Coordinate one requirement/version iteration from repository truth while minimiz
 - run fresh Module CR contexts for independent completed Coding tasks concurrently when runtime capacity permits;
 - expose only reviewed result revisions to Integration and recompute `READY_SET` after integration/dependency unlock;
 - respect runtime/resource concurrency limits; do not invent an unbounded fan-out or fixed universal worker count;
-- update only coordinator-owned execution metadata in Task Packets;
+- update only coordinator-owned execution metadata in Task Packets; do not silently change a Technical Design-owned test mode;
 - route `FREEZE_BREAK_REQUIRED` and `DEPENDENCY_REQUIRED` to their owners;
 - do not paraphrase project truth from one agent into another when repository artifacts are available;
 - collect reviewed module revisions for Integration;
-- when delegation is unavailable, fall back to Agent Handoff plus a ready-to-use next-stage prompt.
+- when delegation is unavailable, fall back to Agent Handoff plus a ready-to-use next-stage prompt;
+- honor focused human acceptance at runnable user-visible module boundaries when automated evidence is insufficient and the user has not authorized uninterrupted progression.
 
 A child/stage completing successfully is an internal transition. Consume its Agent Handoff, update coordinator state, and continue. Do not ask the human whether to start the next routine stage and do not emit routine progress Human Briefs unless the user explicitly requested progress updates.
 
