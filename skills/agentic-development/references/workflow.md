@@ -73,9 +73,9 @@ Technical Design records one `test_mode` per bounded task, based on the conseque
 
 - **`lightweight`** — default for routine, directly observable UI, layout, navigation, and simple CRUD changes when human smoke checks are cheap. Do not create new tests merely to fill a stage; run relevant existing checks and provide a focused acceptance path.
 - **`inline`** — Coding writes small, targeted unit/integration/regression tests alongside implementation when automated checks will prevent meaningful future regressions. No separate Test Agent or TEST FREEZE is required.
-- **`independent`** — for complex business rules, computations, algorithms, state transitions, or materially risky authorization, financial, data-integrity, and destructive changes. Use independent Test preparation, sensitivity evidence when applicable, review, and TEST FREEZE before Coding.
+- **`independent`** — for complex business rules, computations, algorithms, complex/consequential state transitions, or materially risky authorization, financial, data-integrity, and destructive changes. Use independent Test preparation, sensitivity evidence when applicable, review, and TEST FREEZE before Coding.
 
-These are starting defaults, not an exemption for UI logic: complex form rules, irreversible actions, permissions, or high-cost regressions may justify `inline` or `independent`. Existing tests, type checks, and other relevant deterministic checks still run in every mode. A green suite is not proof of correct end-to-end business behavior; inspect observed results and seek focused human acceptance where necessary.
+These are starting defaults, not an exemption for UI logic: complex form rules, irreversible actions, permissions, or high-cost regressions may justify `inline` or `independent`. Existing tests, type checks, and other relevant deterministic checks still run in every mode. A green suite is not proof of correct end-to-end business behavior; inspect observed results and seek focused human acceptance where necessary. If no trustworthy automated oracle exists, do not manufacture brittle frozen assertions: use the most reliable observable verification and disclose the residual uncertainty.
 
 ## Bounded tasks, Test batching, and execution waves
 
