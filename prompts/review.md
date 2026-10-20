@@ -4,12 +4,12 @@ Canonical authority: use the installed `agentic-development` skill. Module CR au
 
 ## Goal
 
-Independently determine whether one completed module task conforms to its frozen Product/Design/Test contracts and declared engineering boundaries.
+Independently determine whether one completed module task conforms to its Product/Design contracts, any applicable frozen test contract, and declared engineering boundaries.
 
 ## Required inputs
 
 - repository / branch / Task Packet;
-- PRODUCT, DESIGN, and TEST FREEZE revisions;
+- PRODUCT/DESIGN FREEZE revisions, `test_mode`, and TEST FREEZE only if `independent`;
 - implementation base/result revisions and diff;
 - applicable standards/exceptions;
 - validation output and test sensitivity evidence.
