@@ -56,7 +56,7 @@ Before writing, downstream stages verify frozen paths against recorded revisions
 
 ## 5. Risk-based verification and TEST FREEZE
 
-Routine observable UI/navigation and simple CRUD tasks generally use `lightweight` verification: existing checks plus focused manual acceptance, without ceremonial new tests. `inline` adds targeted tests during Coding when they offer real regression value. Complex business rules, computations, algorithms, state transitions, and consequential permissions/financial/data-integrity work use `independent` Test and TEST FREEZE. UI is not an exemption for high-risk logic.
+Routine observable UI/navigation and simple CRUD tasks generally use `lightweight` verification: existing checks plus focused manual acceptance, without ceremonial new tests. `inline` adds targeted tests during Coding when they offer real regression value. Complex business rules, computations, algorithms, consequential state transitions, and consequential permissions/financial/data-integrity work use `independent` Test and TEST FREEZE. UI is not an exemption for high-risk logic.
 
 Only for `independent` new behavior or a bug regression expected to be absent/broken at `baseline_revision`, the relevant test should be run at that baseline and fail for the expected semantic reason before TEST FREEZE.
 
