@@ -71,8 +71,8 @@ PRD / Product Discussion
         ↓ PRODUCT FREEZE
 Technical Design + module slicing + initial Task Packets
         ↓ DESIGN FREEZE
-Test preparation for one or more ready bounded tasks
-        ↓ TEST FREEZE per task
+Test mode: lightweight / inline / independent
+        ↓ independent only: Test preparation → TEST FREEZE
 READY_SET → parallel Coding/worktrees → fresh CR per task
         ↓ Integration / dependency unlock / next wave
 Integration / top-level coding
@@ -83,6 +83,8 @@ Focused human acceptance where needed
 ```
 
 Tasks may enter later when upstream truth is already valid. Bug findings are first classified as Product, Design, Test, or implementation defects instead of automatically becoming Coding tasks.
+
+**Verification is risk-driven:** routine observable UI/simple CRUD work generally runs existing checks plus focused acceptance (`lightweight`); Coding may add small targeted tests (`inline`); complex business rules, computations, algorithms, state transitions, and consequential permission/data operations use independent Test and TEST FREEZE (`independent`). UI labels do not exempt risky behavior. A passing test suite never by itself proves end-to-end business correctness.
 
 ## Repository truth
 
@@ -108,15 +110,15 @@ Technical Design creates the initial Task Packet for each bounded task.
 
 ## Freeze semantics
 
-The protocol defines PRODUCT FREEZE, DESIGN FREEZE, and TEST FREEZE.
+The protocol defines PRODUCT FREEZE, DESIGN FREEZE, and a **conditional** TEST FREEZE for independent test mode.
 
 A freeze is not a sentence saying “frozen”. It is established only after required review/approval when the artifact is present in a **committed Git revision** and its paths/revision are recorded for downstream execution.
 
 Before writing, downstream stages verify consumed frozen paths against their recorded freeze revisions. An unexplained mismatch stops the task instead of letting the agent choose whichever version is convenient.
 
-After TEST FREEZE, Coding cannot edit frozen tests merely to regain green status. If a frozen contract is wrong, return `FREEZE_BREAK_REQUIRED` to the owning stage.
+When TEST FREEZE exists, Coding cannot edit frozen tests merely to regain green status. If a frozen contract is wrong, return `FREEZE_BREAK_REQUIRED` to the owning stage.
 
-For new behavior or bug regressions expected to be absent/broken at the declared baseline, TEST FREEZE normally records **baseline sensitivity evidence**: the relevant test failed at `baseline_revision` for the expected semantic reason. If it is already green, record why instead of manufacturing RED.
+For independent-mode new behavior or bug regressions expected to be absent/broken at the declared baseline, TEST FREEZE normally records **baseline sensitivity evidence**: the relevant test failed at `baseline_revision` for the expected semantic reason. If it is already green, record why instead of manufacturing RED.
 
 ## Roles are authority boundaries
 
@@ -136,14 +138,15 @@ The purpose is not persona role-play. It is to prevent a downstream agent from a
 A Task Packet pins the bounded execution context:
 
 - repository / branch / `base_revision`;
-- product/design/test paths and revisions;
+- product/design paths and revisions, plus test contract/revision when independent;
 - dependencies;
 - read/write/forbidden scope;
-- validation;
+- test mode (`lightweight`, `inline`, or `independent`);
+- validation and focused acceptance when applicable;
 - stop conditions;
 - test baseline evidence when applicable.
 
-Ownership is explicit: Technical Design creates the packet, Test owns the test-contract/evidence portion before TEST FREEZE, and the coordinator may update execution status without silently rewriting frozen contract fields.
+Ownership is explicit: Technical Design creates the packet and selects test mode; independent Test owns its test-contract/evidence portion before TEST FREEZE; Coding may add scoped non-frozen inline tests; the coordinator updates only execution status.
 
 See [`docs/task-packets/task-packet.md`](docs/task-packets/task-packet.md).
 
@@ -182,13 +185,13 @@ Open-ended discussion remains appropriate while uncertainty is the work. Once in
 
 Stage boundaries are authority boundaries, not mandatory user-managed chat boundaries.
 
-When the runtime provides isolated sub-agents/threads, a coordinator should keep moving through routine Test, Coding, Review, Integration, and Final Review work without asking the human to launch each stage. Compatible Test tasks may be prepared in one Test context, while each task still owns its own Task Packet fields, evidence, and TEST FREEZE. Coding and Module CR must use separate reasoning contexts so review does not inherit the implementation agent's reasoning transcript.
+When the runtime provides isolated sub-agents/threads, a coordinator should keep moving through applicable stages without asking the human to launch each one. Only independent Test tasks enter Test and may be batched with per-task freeze evidence. Coding and Module CR must use separate reasoning contexts so review does not inherit the implementation agent's reasoning transcript.
 
 For Coding, the coordinator computes a `READY_SET`. If two or more READY tasks are independent and runtime-native worktrees are available, parallel worktree fan-out is the default. Tasks are serialized only for dependency, overlapping write scope, required shared uncommitted state, shared global-resource conflict, insufficient isolation, or runtime/resource limits.
 
 Reasoning/context isolation and filesystem/worktree isolation remain independent. A fresh sub-agent may safely use the shared workspace when work is serialized and required state is uncommitted; worktrees provide filesystem isolation for safe concurrent writers.
 
-The coordinator returns control only for `COMPLETED`, `HUMAN_DECISION_REQUIRED`, `FREEZE_BREAK_REQUIRED`, `BLOCKED`, `DELEGATION_UNAVAILABLE`, or `FINAL_ACCEPTANCE_REQUIRED`. If the runtime cannot delegate safely, the protocol falls back to a structured handoff and ready-to-paste next-stage prompt.
+The coordinator returns control only for `COMPLETED`, `HUMAN_DECISION_REQUIRED`, `FREEZE_BREAK_REQUIRED`, `BLOCKED`, `DELEGATION_UNAVAILABLE`, or `FINAL_ACCEPTANCE_REQUIRED` (including focused acceptance at meaningful user-visible module boundaries). If the runtime cannot delegate safely, the protocol falls back to a structured handoff and ready-to-paste next-stage prompt.
 
 ## Current non-goals
 
@@ -212,13 +215,15 @@ The current version succeeds if real projects show that:
 1. a fresh agent can route a task from Skill + repository truth;
 2. stage authority prevents silent upstream rewriting;
 3. freeze revisions are actually verifiable;
-4. TEST FREEZE blocks both test weakening and non-discriminating test contracts;
+4. independent TEST FREEZE blocks test weakening and non-discriminating test contracts without imposing that cost on routine tasks;
 5. Task Packets survive fresh execution-context handoff without hidden context;
 6. Human Brief reduces reading without hiding material decisions;
 7. runtime-native continuation removes routine human orchestration without weakening stage isolation;
 8. independent READY tasks actually execute concurrently when safe instead of being unnecessarily serialized;
 9. parallel worktree results integrate without hidden semantic conflict or excessive merge/rework cost;
 10. repeated CR/rework decreases;
-11. the process remains light enough to use routinely.
+11. lightweight/inline routes reduce execution and token cost without increasing material escaped defects;
+12. focused acceptance catches business failures not proven by green tests;
+13. the process remains light enough to use routinely.
 
 The next useful work is therefore empirical validation on real repositories, not more orchestration infrastructure.
