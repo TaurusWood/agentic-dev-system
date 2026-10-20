@@ -58,7 +58,7 @@ Freeze 不是一句“已冻结”。必须满足：
 
 ## 5. 风险驱动的测试与 TEST FREEZE
 
-普通 UI、导航和简单 CRUD 默认采用 `lightweight`：沿用已有检查，提供可操作的人工验收路径，不为流程形式新增用例。有明显回归价值时采用 `inline`，由 Coding 补充聚焦测试。复杂业务规则、计算、算法、状态流和重要权限/财务/数据完整性操作采用 `independent`，才进入独立 Test 与 TEST FREEZE。具有复杂规则的 UI 不因页面属性而豁免测试。
+普通 UI、导航和简单 CRUD 默认采用 `lightweight`：沿用已有检查，提供可操作的人工验收路径，不为流程形式新增用例。有明显回归价值时采用 `inline`，由 Coding 补充聚焦测试。复杂业务规则、计算、算法、复杂状态流和重要权限/财务/数据完整性操作采用 `independent`，才进入独立 Test 与 TEST FREEZE。具有复杂规则的 UI 不因页面属性而豁免测试。
 
 只有 `independent` 模式的新增行为或 Bug regression，如果目标行为按定义在 `baseline_revision` 上尚未正确存在，才应在 TEST FREEZE 前验证相关测试：
 
