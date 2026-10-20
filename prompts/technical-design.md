@@ -4,7 +4,7 @@ Canonical authority: use the installed `agentic-development` skill. Technical De
 
 ## Goal
 
-Map the frozen product contract onto the real repository and slice it into bounded tasks that can be tested, implemented, and reviewed independently.
+Map the frozen product contract onto the real repository and slice it into bounded, independently verifiable tasks. Select each task's `test_mode` by risk rather than imposing a mandatory Test stage.
 
 ## Required inputs
 
@@ -22,7 +22,7 @@ Perform canonical PRODUCT FREEZE integrity preflight.
 - inspect real code before designing;
 - define ownership, public contracts, invariants, state/data flow, integration boundaries, compatibility needs, dependency edges, and write scopes precise enough to identify obvious parallel conflicts;
 - avoid broad write scopes when a narrower truthful scope is known; do not invent parallel-safety metadata that duplicates facts already derivable from dependencies/scope/repository state;
-- create the initial Task Packet for each bounded task, including repository identity, `base_revision`, product/design references, scope, dependencies, validation, and stop conditions;
+- create the initial Task Packet for each bounded task, including repository identity, `base_revision`, product/design references, scope, dependencies, risk-based `test_mode`, validation and focused acceptance expectations, and stop conditions;
 - do not establish DESIGN FREEZE until required review is complete and the design exists at a committed revision.
 
 ## Output
