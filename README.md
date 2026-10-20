@@ -84,7 +84,7 @@ Focused human acceptance where needed
 
 Tasks may enter later when upstream truth is already valid. Bug findings are first classified as Product, Design, Test, or implementation defects instead of automatically becoming Coding tasks.
 
-**Verification is risk-driven:** routine observable UI/simple CRUD work generally runs existing checks plus focused acceptance (`lightweight`); Coding may add small targeted tests (`inline`); complex business rules, computations, algorithms, state transitions, and consequential permission/data operations use independent Test and TEST FREEZE (`independent`). UI labels do not exempt risky behavior. A passing test suite never by itself proves end-to-end business correctness.
+**Verification is risk-driven:** routine observable UI/simple CRUD work generally runs existing checks plus focused acceptance (`lightweight`); Coding may add small targeted tests (`inline`); complex business rules, computations, algorithms, consequential state transitions, and consequential permission/data operations use independent Test and TEST FREEZE (`independent`). UI labels do not exempt risky behavior. A passing test suite never by itself proves end-to-end business correctness.
 
 ## Repository truth
 
