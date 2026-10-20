@@ -40,6 +40,7 @@ This file is the canonical runtime source for stage authority. Use these contrac
 - state/data flow and integration boundaries
 - agent-sized task slicing, dependency edges, and write scopes precise enough for safe scheduling
 - creation of the initial task packet for each bounded module task
+- risk-based test-mode selection and verification/acceptance expectations for each task
 
 **May change**
 - technical-design artifacts and initial task packets in scope
@@ -58,10 +59,12 @@ This file is the canonical runtime source for stage authority. Use these contrac
 
 **Done when**
 - module/task boundaries, dependencies, write scopes, contracts, and validation expectations are explicit enough to determine READY tasks and obvious parallel conflicts
-- each implementation-bound task has an initial packet with repository identity, `base_revision`, product/design inputs, scope, dependencies, validation, and stop conditions
+- each implementation-bound task has an initial packet with repository identity, `base_revision`, product/design inputs, scope, dependencies, `test_mode`, validation/acceptance expectations, and stop conditions
 - after required review, DESIGN FREEZE can be established at a committed revision
 
-## Test
+## Test (independent mode only)
+
+Only tasks with `test_mode: independent` enter this stage. Routine UI/CRUD tasks do not require an independent Test Agent or TEST FREEZE.
 
 **Owns**
 - proving frozen product and technical contracts for one or more explicitly assigned bounded tasks
@@ -99,14 +102,16 @@ This file is the canonical runtime source for stage authority. Use these contrac
 ## Coding
 
 **Owns**
-- the smallest justified production-code change that satisfies frozen product/design/test contracts
+- the smallest justified change satisfying frozen product/design contracts and any applicable frozen test contract
+- targeted tests within assigned scope when `test_mode: inline`
 
 **May change**
 - production files inside declared write scope
+- non-frozen test files inside explicitly permitted write scope when `test_mode: inline`
 
 **Must preserve**
 - frozen product/design artifacts
-- frozen tests
+- any existing frozen tests
 - valid module ownership and external contracts
 - task-packet scope/dependencies
 
@@ -118,14 +123,14 @@ This file is the canonical runtime source for stage authority. Use these contrac
 
 **Must stop when**
 - any required freeze-integrity preflight fails
-- frozen Test or Design is invalid
+- an applicable frozen Test or Design is invalid
 - safe implementation requires an undeclared external contract change
 - a prerequisite dependency is missing or the declared base revision is materially stale
 
 **Done when**
 - freeze-integrity preflight passed before edits
-- required validation passes or a precise blocker is returned
-- diff is self-reviewed against contracts
+- relevant existing checks and mode-appropriate validation pass or a precise blocker is returned
+- diff is self-reviewed against contracts; user-facing work includes a runnable acceptance path when needed
 - frozen artifacts remain unchanged
 
 ## Module CR
@@ -151,7 +156,8 @@ This file is the canonical runtime source for stage authority. Use these contrac
 **Done when**
 - the review is independent of the Coding execution context when runtime isolation is available
 - frozen artifacts and declared scope are independently checked against revisions/diff
-- test sensitivity evidence is reviewed where applicable
+- test sensitivity evidence is reviewed where applicable; absence of TEST FREEZE in lightweight/inline mode is not a defect
+- passing unit tests are not treated as proof of end-to-end business acceptance
 - findings are evidence-based and ordered by severity
 - verdict is explicit: PASS / PASS_WITH_NOTES / CHANGES_REQUIRED / FREEZE_BREAK_REQUIRED
 
