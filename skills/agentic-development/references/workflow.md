@@ -141,8 +141,8 @@ For each safe parallel task:
 Conceptually:
 
 ```text
-compatible Test preparation
-        ↓ per-task TEST FREEZE
+required verification routing
+  ↓ TEST FREEZE only for independent
      compute READY_SET
         ↓
  conflict / dependency classification
