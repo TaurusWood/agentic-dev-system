@@ -10,7 +10,7 @@ A downstream agent must not be able to make an upstream requirement easier merel
 
 - **PRODUCT FREEZE** — approved observable behavior, scope, and product boundaries.
 - **DESIGN FREEZE** — approved Technical Design, module boundaries, public contracts, terminology, and task slicing.
-- **TEST FREEZE** — accepted test contract for a bounded task.
+- **TEST FREEZE** — accepted test contract only when the bounded task uses `test_mode: independent`.
 
 Freeze means downstream read-only by default, not immutable forever.
 
@@ -27,7 +27,7 @@ A freeze is established only after:
 
 ## 4. TEST FREEZE sensitivity evidence
 
-For a new behavior or bug regression expected to be absent/broken at the declared baseline, TEST FREEZE normally records:
+For a new behavior or bug regression in `independent` mode expected to be absent/broken at the declared baseline, TEST FREEZE normally records:
 
 ```yaml
 test_evidence:
@@ -41,17 +41,17 @@ If the relevant test is already green, record a justification rather than forcin
 
 ## 5. Downstream preflight
 
-Before writing, downstream stages verify consumed frozen paths against their freeze revisions, conceptually:
+Before writing, downstream stages verify all **applicable** consumed frozen paths against their freeze revisions. For `lightweight` and `inline` tasks there is no TEST FREEZE to verify, conceptually:
 
 ```text
 git diff <product-freeze-sha> -- <product paths>
 git diff <design-freeze-sha>  -- <design paths>
-git diff <test-freeze-sha>    -- <test paths>
+git diff <test-freeze-sha>    -- <test paths> # only independent mode
 ```
 
 They also verify the Task Packet's `base_revision` and dependencies still identify the intended execution baseline.
 
-A legitimate newer re-freeze requires a refreshed packet/handoff. An unexplained mismatch stops execution.
+The absence of TEST FREEZE in lightweight/inline mode is valid, not a failed preflight. A legitimate newer re-freeze requires a refreshed packet/handoff. An unexplained mismatch stops execution.
 
 ## 6. Freeze Break
 
