@@ -10,9 +10,14 @@ The current objective is deliberately small: make that workflow explicit, runnab
 
 The runnable distribution is the `agentic-development` Skill under [`skills/agentic-development/`](skills/agentic-development/).
 
+For an individual developer using Codex across multiple repositories, install **one global copy**:
+
 ```bash
-npx skills add https://github.com/TaurusWood/agentic-dev-system --skill agentic-development
+npx skills add https://github.com/TaurusWood/agentic-dev-system --skill agentic-development --global --agent codex --yes
+npx skills update agentic-development --global
 ```
+
+Use additional `--agent` selectors when the same developer wants to expose the Skill to other supported coding agents. A project-local installation remains valid when a team deliberately versions and shares it, but avoid keeping an obsolete project copy with the same name alongside a global installation. Do not delete other project-specific Skills.
 
 A manual multi-chat workflow and a runtime with sub-agents use the same Skill contracts. Manual execution remains supported, but when isolated runtime-native delegation is available the default is automatic continuation across routine stages rather than asking the human to open each next chat.
 

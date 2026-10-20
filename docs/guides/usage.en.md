@@ -17,9 +17,14 @@ Runtime semantics are defined only by:
 
 ## 2. Install and invoke
 
+For an individual Codex user working across repositories, prefer **one global copy**:
+
 ```bash
-npx skills add https://github.com/TaurusWood/agentic-dev-system --skill agentic-development
+npx skills add https://github.com/TaurusWood/agentic-dev-system --skill agentic-development --global --agent codex --yes
+npx skills update agentic-development --global
 ```
+
+Add more `--agent` selectors to expose the same Skill to other supported coding agents. Project-local installation remains appropriate when a team deliberately shares or pins a version. After verifying the global installation, remove obsolete same-name project copies and their lock entries, not unrelated project-specific Skills. Global installation is **machine-local per user**; GitHub alone does not synchronize it. 
 
 Whether a human opens a fresh chat or a runtime delegates to a sub-agent, the execution unit should use `agentic-development` and read the target repository directly. When isolated sub-agents are available, prefer coordinator-driven automatic continuation; manual chat creation is the fallback.
 
