@@ -35,6 +35,7 @@ This file is the canonical runtime source for stage authority. Use these contrac
 
 **Owns**
 - mapping frozen product intent onto the actual codebase
+- for consequential changes to existing code, identifying root cause/change impact and any necessary adjustments to existing ownership or boundaries
 - technical terminology and module ownership
 - public contracts and invariants
 - state/data flow and integration boundaries
@@ -103,6 +104,7 @@ Only tasks with `test_mode: independent` enter this stage. Routine UI/CRUD tasks
 
 **Owns**
 - the smallest justified change satisfying frozen product/design contracts and any applicable frozen test contract
+- for existing-code edits, confirming the owning responsibility and distinguishing the root cause from the nearest symptom before choosing the edit location
 - targeted tests within assigned scope when `test_mode: inline`
 
 **May change**
@@ -113,6 +115,7 @@ Only tasks with `test_mode: independent` enter this stage. Routine UI/CRUD tasks
 - frozen product/design artifacts
 - any existing frozen tests
 - valid module ownership and external contracts
+- unrelated behavior, authoritative rule/state ownership, and justified dependency direction in affected code
 - task-packet scope/dependencies
 
 **Must not do**
@@ -130,13 +133,14 @@ Only tasks with `test_mode: independent` enter this stage. Routine UI/CRUD tasks
 **Done when**
 - freeze-integrity preflight passed before edits
 - relevant existing checks and mode-appropriate validation pass or a precise blocker is returned
-- diff is self-reviewed against contracts; user-facing work includes a runnable acceptance path when needed
+- diff is self-reviewed against contracts, including newly introduced dependencies, state mutations, side effects, and ownership shifts; user-facing work includes a runnable acceptance path when needed
 - frozen artifacts remain unchanged
 
 ## Module CR
 
 **Owns**
 - independent conformance review of one completed module task
+- architecture-delta review of changed responsibilities, rule/state ownership, side effects, and dependency boundaries against the declared base revision
 
 **May change**
 - normally nothing; review first unless explicitly asked to fix after findings
@@ -148,6 +152,7 @@ Only tasks with `test_mode: independent` enter this stage. Routine UI/CRUD tasks
 - redesign Product or Technical Design during review
 - treat the Coding agent's private reasoning/transcript as authoritative review evidence
 - create style-only findings without a violated invariant and impact
+- block a change solely for unchanged legacy debt, arbitrary line/nesting thresholds, or preferred refactoring style
 
 **Must stop when**
 - the upstream contract itself is wrong; request a Freeze Break instead
@@ -159,6 +164,7 @@ Only tasks with `test_mode: independent` enter this stage. Routine UI/CRUD tasks
 - test sensitivity evidence is reviewed where applicable; absence of TEST FREEZE in lightweight/inline mode is not a defect
 - passing unit tests are not treated as proof of end-to-end business acceptance
 - findings are evidence-based and ordered by severity
+- material new or aggravated coupling is tied to a specific diff, violated ownership/contract, and reachable impact; unchanged legacy debt is reported only when relevant and is not automatically blocking
 - verdict is explicit: PASS / PASS_WITH_NOTES / CHANGES_REQUIRED / FREEZE_BREAK_REQUIRED
 
 ## Integration / Top-level Coding
@@ -192,6 +198,7 @@ Only tasks with `test_mode: independent` enter this stage. Routine UI/CRUD tasks
 
 **Owns**
 - system-level verification of the integrated requirement/version
+- when several slices repeatedly modify a core module or shared contract, checking cumulative boundary/ownership drift that individual task diffs may miss
 
 **May change**
 - normally nothing; report findings
@@ -209,3 +216,4 @@ Only tasks with `test_mode: independent` enter this stage. Routine UI/CRUD tasks
 **Done when**
 - PRD coverage, end-to-end journeys, cross-module contracts, regression, freeze integrity, and residual risks are reviewed
 - final verdict and focused human acceptance scenarios are explicit
+- any material cumulative architecture regression is supported by changed-code evidence, without a mandatory whole-repository architecture audit
