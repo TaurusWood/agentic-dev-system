@@ -31,6 +31,18 @@ Focused human acceptance when needed
 
 Not every task must start at PRD. Enter at the earliest stage that actually owns the unresolved truth.
 
+## Task intent classification (before stage routing)
+
+A user may optionally prefix a request with `feat:`, `fix:`, or `refactor:`. Explicit intent takes precedence over inference; without a prefix, infer the likely intent from the request and repository evidence. Never require the user to fill a form or add a prefix.
+
+- **`feat`** — new or changed externally observable behavior, including enhancements to an existing feature.
+- **`fix`** — a reported deviation from intended behavior; the diagnosis and responsible layer still require evidence.
+- **`refactor`** — a structure/maintainability change with no intended externally observable behavior change.
+
+For mixed requests, identify the primary intent and note any consequential secondary changes. These labels describe **user intent**, not the verified root cause, authorization to change frozen contracts, or the stage to enter. Compare the request with existing product/design truth and observed behavior; if a `fix` reveals a missing product rule or faulty module design, route to the owning upstream stage. Explain a material mismatch rather than silently obeying the label. Ask the human only when the intended outcome itself remains materially ambiguous.
+
+`task_type`, **entry stage**, and `test_mode` are independent decisions. Keep other simple maintenance tasks on the smallest applicable existing route; do not grow a new lifecycle stage or a large conventional-commit taxonomy merely to classify them.
+
 ## Entry A — feature / version iteration
 
 Use PRD when user-visible behavior, gameplay, UX, information hierarchy, or scope is still being decided.
@@ -38,6 +50,8 @@ Use PRD when user-visible behavior, gameplay, UX, information hierarchy, or scop
 After PRODUCT FREEZE, move to Technical Design. Do not ask Coding to infer product behavior from prose fragments.
 
 ## Entry B — bug / E2E finding
+
+Before choosing the repair stage, establish the observed failure (prefer a reproducible case), expected behavior, and the evidence distinguishing symptom from root cause. Identify the authoritative rule/state, owning module, affected callers and side effects. Do not assume the nearest failing conditional is the correct location for the fix. When reproduction is impractical, state the evidence gap and a proportionate alternative verification path.
 
 First classify the defect:
 
@@ -66,6 +80,14 @@ When user-visible behavior should remain unchanged:
 - continue through Technical Design -> optional independent Test -> Coding -> CR.
 
 The product artifact may be lightweight, but invariant preservation must be explicit.
+
+## Existing-code change impact (feat / fix / refactor)
+
+Before materially modifying existing code, check the affected responsibility boundary: authoritative rule and state owner, existing public contracts, dependency direction, and externally visible side effects. Choose the smallest correct change **within the proper owner**, not automatically the smallest textual patch. Avoid accumulating special cases in a handler that does not own the rule.
+
+For a routine localized change that respects existing boundaries, continue directly in the applicable stage without a formal redesign or extra document. For a change that requires new ownership, a changed external-module contract, new cross-boundary side effects, or a materially different state flow, route to Technical Design (or Product when behavior itself is unresolved); do not silently extend Coding scope. Record concise preserved invariants and boundary risks in the task context only when they materially aid execution or review.
+
+After Coding, the existing independent Module CR checks the **architecture delta** against the declared base revision. This is a risk-scaled part of normal review, not a new architecture stage or a repository-wide refactor mandate. Final CR may examine cumulative drift when several slices repeatedly change one core module or shared contract.
 
 ## Risk-based test routing
 
