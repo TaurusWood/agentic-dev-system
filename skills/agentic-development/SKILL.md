@@ -50,6 +50,8 @@ Do not require a project profile file. Infer the project map from existing repos
 
 Read `references/workflow.md` when deciding where a task enters or what stage comes next.
 
+An optional `feat:`, `fix:`, or `refactor:` prefix identifies user intent; otherwise infer it. Classification does not override repository evidence, freeze authority, stage routing, or risk-based test selection. For existing-code changes, apply the pre-edit impact check and post-edit architecture-delta review defined by the canonical workflow and stage contracts.
+
 Typical routing:
 
 - New/changed user-visible behavior with unresolved intent -> PRD / Product Discussion.
