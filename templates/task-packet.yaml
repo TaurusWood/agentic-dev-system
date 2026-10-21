@@ -1,5 +1,7 @@
 task: TASK-ID
 title: ""
+# Optional intent (explicit user prefix or agent inference); not a stage or test mode.
+task_type: null # feat | fix | refactor
 phase: test | implementation | review | integration | final-review
 status: planned | ready | test-frozen | coding | review | done | blocked
 
@@ -40,6 +42,13 @@ depends_on: []
 read_scope: []
 write_scope: []
 forbidden_scope: []
+
+# Optional: only for nontrivial existing-code changes with meaningful boundary risk.
+# change_impact:
+#   affected_modules: []
+#   preserved_invariants: []
+#   boundary_risks: []
+change_impact: null
 
 validation: [] # relevant existing checks + mode-appropriate verification
 focused_acceptance: [] # optional real entry, prerequisites, steps, expected result
