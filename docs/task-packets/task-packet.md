@@ -56,13 +56,15 @@ validation:
   - ./scripts/run_tests.mjs build_planning
 ```
 
+`task_type` may be omitted or set to `feat`, `fix`, or `refactor` to preserve the stated or inferred user intent. It does not select the entry stage or `test_mode`. For nontrivial existing-code changes, an optional `change_impact` can reference affected module owners, invariants to preserve, and concrete boundary risks; keep it null for routine scoped changes. These are review anchors, not a separate freeze or required new document.
+
 For `test_mode: lightweight` or `inline`, omit or set `test_contract: null`; no TEST FREEZE revision or baseline sensitivity evidence is required. `lightweight` runs relevant existing checks and gives a focused observable acceptance path; `inline` allows Coding to add scoped, non-frozen tests. `independent` retains the test-first contract above for complex/high-risk semantics. UI labels alone do not determine risk.
 
 ## 3. Ownership
 
 Task Packet fields are not all owned by the coordinator.
 
-- **Technical Design** creates the initial packet and owns task goal, repository/base revision, technical scope, dependencies, `test_mode`, applicable standards, validation/acceptance expectations, and stop conditions until DESIGN FREEZE.
+- **Technical Design** creates the initial packet and owns task goal, repository/base revision, technical scope, dependencies, `test_mode`, applicable standards, validation/acceptance expectations, stop conditions, and any design-significant change-impact anchors until DESIGN FREEZE. User-provided `task_type` remains an intent label, not permission for Technical Design to redefine the goal.
 - **Test** owns `test_contract` paths/revision/evidence until TEST FREEZE, but only for `independent` tasks. Coding owns any inline non-frozen test additions within the authorized scope.
 - **Coordinator** may update execution metadata such as phase, status, completed/result revisions, and routing. It must not silently rewrite frozen Product/Design/Test contract fields.
 - **Coding / Review / Integration** consume the packet. If a contract field is stale or wrong, they escalate to its owning stage.
