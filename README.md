@@ -1,25 +1,88 @@
 # Agentic Development System
 
-A contract-driven software-development protocol for human- and agent-operated workflows.
+A lightweight, contract-driven workflow for building and maintaining software with coding agents. It helps keep **product intent, architecture, tests, implementation, and review** aligned across long-running or multi-agent work.
 
-The project addresses a practical change in AI-assisted development: humans increasingly define intent, judge plans, and make material decisions while coding agents execute tests, implementation, and review. The main risk is therefore not only code quality; it is **semantic drift across requirements, design, tests, implementation, reviews, and chats**.
+Use the `agentic-development` Skill in an existing repository. No custom orchestrator, task server, or special project structure is required.
 
-The current objective is deliberately small: make that workflow explicit, runnable, and testable on real projects before building orchestration infrastructure.
+## Quick start
 
-## Install
-
-The core workflow distribution is the `agentic-development` Skill under [`skills/agentic-development/`](skills/agentic-development/).
-
-For an individual developer using Codex across multiple repositories, install **one global copy**:
+Install the Skill once for Codex (global installation is recommended when working across repositories):
 
 ```bash
 npx skills add https://github.com/TaurusWood/agentic-dev-system --skill agentic-development --global --agent codex --yes
 npx skills update agentic-development --global
 ```
 
-Use additional `--agent` selectors when the same developer wants to expose the Skill to other supported coding agents. A project-local installation remains valid when a team deliberately versions and shares it, but avoid keeping an obsolete project copy with the same name alongside a global installation. Do not delete other project-specific Skills.
+Install with additional `--agent` selectors for other supported coding agents. Avoid keeping an outdated project-local copy alongside a global copy with the same name.
 
-A manual multi-chat workflow and a runtime with sub-agents use the same Skill contracts. Manual execution remains supported, but when isolated runtime-native delegation is available the default is automatic continuation across routine stages rather than asking the human to open each next chat.
+In your coding agent, describe the task normally, or start with an **optional intent prefix**:
+
+```text
+feat: Add bulk enable/disable for merchant rules.
+fix: A merchant rule overwrites manually confirmed transactions.
+refactor: Separate rule eligibility from history impact planning without changing behavior.
+```
+
+You can also explicitly say: `Use the agentic-development skill to handle this task.` Without a prefix, the Skill infers the intent. It validates the request against repository evidence; `fix` does not force a coding-only solution when the defect is actually in Product or Technical Design.
+
+## What it does
+
+| Capability | When it helps | Result |
+| --- | --- | --- |
+| **Task-aware routing** (`feat`, `fix`, `refactor`) | New functionality, regressions, behavior-preserving cleanup | Enters the earliest stage that owns the unresolved decision |
+| **Contracts and task slices** | Multi-module changes or work spanning multiple sessions | Explicit ownership, boundaries, dependencies, and scoped Task Packets |
+| **Risk-based verification** | Routine UI changes through complex financial/permission logic | `lightweight`, `inline`, or `independent` testing instead of test-first ceremony for every task |
+| **Independent review and architecture guards** | Especially bug fixes and incremental edits to existing logic | Fresh Module CR checks correctness **and** new coupling/ownership drift against the baseline |
+| **Freeze and handoff discipline** | Decisions or tests must survive agent/context switches | Committed Product/Design freezes, optional Test freeze, revision-pinned handoffs |
+| **Delegated execution** | Several independent slices can proceed safely | Uses runtime-native isolated agents/worktrees when available; otherwise supplies manual handoffs |
+
+## Guide: choose an entry point
+
+### 1. Feature or change request — `feat:`
+
+```text
+feat: In the expense-review UI, allow confirming all selected records in one operation.
+Preserve the existing ledger rules and show a single success/failure result.
+Use agentic-development and inspect the current contracts first.
+```
+
+If behavior is unresolved, start at Product/PRD. If behavior is already frozen, proceed to the needed Technical Design, Test, or Coding stage. Technical Design names the owning modules and creates bounded tasks; it does not redesign unrelated modules.
+
+### 2. Bug or failed E2E — `fix:`
+
+```text
+fix: Saving a merchant classification rule sometimes changes a manually confirmed target person.
+Reproduce the failure with synthetic data, find the root cause and owning module,
+then make the smallest correct fix and review the architecture delta.
+```
+
+Establish **observed vs expected** behavior, identify root cause and impacted boundaries, and route accordingly:
+
+- **Implementation defect:** focused fix → risk-matched regression checks → fresh Module CR.
+- **Missing/wrong product rule:** return to Product and update the applicable freeze.
+- **Incorrect module design/contract:** return to Technical Design before editing the architecture.
+
+Do not repair a symptom by adding another special case in the wrong module. A simple local fix does **not** require a full redesign.
+
+### 3. Structure-only work — `refactor:`
+
+```text
+refactor: Split rule eligibility checks from impact-plan construction.
+Do not change user-visible results, persistence semantics, or existing public contracts.
+Verify preservation with relevant regression evidence.
+```
+
+State the structural objective, affected boundary, and invariants that must remain unchanged. Review the delta for changed dependencies or side effects. Do not refactor unrelated legacy code for stylistic consistency.
+
+### 4. Continue a frozen Slice
+
+```text
+Use agentic-development to continue TASK-04 in this repository.
+Read its Task Packet and recorded freeze revisions, verify the current baseline,
+then proceed to the next allowed stage.
+```
+
+The repository—not the previous chat—is the source of truth. The Skill checks recorded revisions, dependencies, allowed paths, and applicable test mode before resuming.
 
 ## Admin UX companion
 
@@ -33,214 +96,37 @@ Use it to improve a known admin task, try an isolated prototype, and record the 
 
 Start with the [Chinese usage guide](docs/guides/admin-ux-design.zh-CN.md). Package validation and behavioral evaluation limits are documented there. `agentic-development` continues to own workflow semantics; the companion is not required for non-admin work.
 
-## Web Chat Discussion Layer
-
-Open-ended Web Chat reasoning is governed separately from the formal execution lifecycle.
-
-The canonical behavior contract is:
-
-- [`docs/web-chat/discussion-protocol.md`](docs/web-chat/discussion-protocol.md)
-
-A thin personal/local ChatGPT plugin package lives under:
-
-- [`plugins/discussion/`](plugins/discussion/)
-
-It dynamically reads the canonical protocol through the GitHub connector instead of embedding a second copy of the rules.
-
-The v0.1 interface is:
+## How execution works
 
 ```text
-@discussion :init
-@discussion :judge
-@discussion :new-chat
-@discussion :local
+Task intent (optional feat/fix/refactor)
+  → inspect repository + route to owning stage
+  → Product / Technical Design only when needed
+  → select test mode by risk
+  → bounded Coding → independent Module CR
+  → Integration / Final CR where applicable
+  → focused human acceptance when automated evidence is insufficient
 ```
 
-The Discussion Layer is intentionally not a Product → Design → Test → Coding stage machine. It governs how a chat reasons and hands off; formal execution semantics remain owned by `agentic-development`.
+**For changes to existing code:** assess root cause, owning responsibility, and cross-module impact *before* editing. Afterwards, Module CR compares the implementation against its baseline for **new or aggravated architectural coupling**. Existing unrelated technical debt is not an automatic blocker. Final CR checks cumulative drift when several slices repeatedly change the same core boundary.
 
-## One normative runtime source
+Testing is proportional: routine UI/CRUD work can use existing checks and focused acceptance; complex business rules, calculations, consequential state transitions, or risky data operations may warrant independently prepared tests and a Test freeze. Passing tests alone never establish full business correctness.
 
-To prevent this repository from reproducing the same problem it is trying to solve, runtime protocol semantics have one normative location:
+When the runtime supports safe isolated delegation, routine stage transitions and independent slices can proceed automatically. Otherwise, the Skill provides an Agent Handoff and a ready-to-use next prompt. Human review is reserved for material decisions, contract changes, blockers, and appropriate acceptance points.
 
-- [`skills/agentic-development/references/workflow.md`](skills/agentic-development/references/workflow.md)
-- [`skills/agentic-development/references/stage-contracts.md`](skills/agentic-development/references/stage-contracts.md)
-- [`skills/agentic-development/references/freeze-output.md`](skills/agentic-development/references/freeze-output.md)
-- [`skills/agentic-development/references/prompt-composition.md`](skills/agentic-development/references/prompt-composition.md)
+## Reference
 
-Root [`prompts/`](prompts/) files are **launch adapters**, not independent Role Contracts. `docs/` explains rationale and usage. If explanatory prose conflicts with runtime references, the runtime references win and the prose should be corrected.
+- [Skill entry](skills/agentic-development/SKILL.md) — how to start or continue.
+- [Workflow routing](skills/agentic-development/references/workflow.md) — task intent, stage selection, change-impact checks, test routing, and continuation.
+- [Stage contracts](skills/agentic-development/references/stage-contracts.md) — what each stage may change, preserve, and verify.
+- [Task Packet template](templates/task-packet.yaml) — scoped execution context.
+- [Engineering standards](docs/standards/README.md) — ownership, module boundaries, failure behavior, and code quality.
+- [Web Chat Discussion Layer](docs/web-chat/discussion-protocol.md) — optional separate discussion protocol (`@discussion :init`, `:judge`, `:new-chat`, `:local`); not a substitute for the coding workflow.
 
-Run:
+For contributors: canonical runtime semantics live under [`skills/agentic-development/references/`](skills/agentic-development/references/). Root `prompts/` are thin launch adapters; `docs/` explains usage, not independent stage authority. After protocol edits, run:
 
 ```bash
 node scripts/check-protocol-drift.mjs
 ```
 
-to ensure prompt adapters do not grow a second copy of stage authority semantics.
-
-This is intentionally lighter than a Prompt Compiler: **single normative source + thin adapters + a small drift check**.
-
-## Canonical lifecycle
-
-```text
-Requirement / finding
-        ↓
-PRD / Product Discussion
-        ↓ PRODUCT FREEZE
-Technical Design + module slicing + initial Task Packets
-        ↓ DESIGN FREEZE
-Test mode: lightweight / inline / independent
-        ↓ independent only: Test preparation → TEST FREEZE
-READY_SET → parallel Coding/worktrees → fresh CR per task
-        ↓ Integration / dependency unlock / next wave
-Integration / top-level coding
-        ↓
-Final CR
-        ↓
-Focused human acceptance where needed
-```
-
-Tasks may enter later when upstream truth is already valid. Bug findings are first classified as Product, Design, Test, or implementation defects instead of automatically becoming Coding tasks.
-
-**Verification is risk-driven:** routine observable UI/simple CRUD work generally runs existing checks plus focused acceptance (`lightweight`); Coding may add small targeted tests (`inline`); complex business rules, computations, algorithms, consequential state transitions, and consequential permission/data operations use independent Test and TEST FREEZE (`independent`). UI labels do not exempt risky behavior. A passing test suite never by itself proves end-to-end business correctness.
-
-## Repository truth
-
-Chats are disposable execution environments. Prompts are execution interfaces. Durable truth belongs in versioned repository artifacts:
-
-- code, configuration, schemas, runtime evidence;
-- PRD / product contract;
-- Technical Design and module task contracts;
-- tests and test evidence;
-- engineering standards;
-- Task Packets;
-- Git revisions / freeze points.
-
-A fresh agent should be able to continue from repository truth plus compact execution metadata without needing the old chat transcript.
-
-## PRD and Technical Design
-
-PRD owns **WHAT**: user/player-visible behavior, flows, UX rules, acceptance, non-goals, and product boundaries.
-
-Technical Design owns **HOW**: mapping the frozen product intent onto the actual codebase, module ownership, public contracts, state/data flow, dependencies, implementation constraints, and agent-sized task slicing.
-
-Technical Design creates the initial Task Packet for each bounded task.
-
-## Freeze semantics
-
-The protocol defines PRODUCT FREEZE, DESIGN FREEZE, and a **conditional** TEST FREEZE for independent test mode.
-
-A freeze is not a sentence saying “frozen”. It is established only after required review/approval when the artifact is present in a **committed Git revision** and its paths/revision are recorded for downstream execution.
-
-Before writing, downstream stages verify consumed frozen paths against their recorded freeze revisions. An unexplained mismatch stops the task instead of letting the agent choose whichever version is convenient.
-
-When TEST FREEZE exists, Coding cannot edit frozen tests merely to regain green status. If a frozen contract is wrong, return `FREEZE_BREAK_REQUIRED` to the owning stage.
-
-For independent-mode new behavior or bug regressions expected to be absent/broken at the declared baseline, TEST FREEZE normally records **baseline sensitivity evidence**: the relevant test failed at `baseline_revision` for the expected semantic reason. If it is already green, record why instead of manufacturing RED.
-
-## Roles are authority boundaries
-
-A stage Role Contract defines:
-
-- Owns
-- May change
-- Must preserve
-- Must not do
-- Must stop when
-- Done when
-
-The purpose is not persona role-play. It is to prevent a downstream agent from acquiring authority simply because changing an upstream contract would make its local task easier.
-
-## Task Packets
-
-A Task Packet pins the bounded execution context:
-
-- repository / branch / `base_revision`;
-- product/design paths and revisions, plus test contract/revision when independent;
-- dependencies;
-- read/write/forbidden scope;
-- test mode (`lightweight`, `inline`, or `independent`);
-- validation and focused acceptance when applicable;
-- stop conditions;
-- test baseline evidence when applicable.
-
-Ownership is explicit: Technical Design creates the packet and selects test mode; independent Test owns its test-contract/evidence portion before TEST FREEZE; Coding may add scoped non-frozen inline tests; the coordinator updates only execution status.
-
-See [`docs/task-packets/task-packet.md`](docs/task-packets/task-packet.md).
-
-## Human and agent output
-
-The protocol separates consumers:
-
-- **Human Brief** — emitted when control returns to the human, with a canonical stop reason plus conclusion, boundary, material risk, required decision, and next step.
-- **Human Discussion** — only for genuine product/UX/architecture/risk trade-offs, Freeze Breaks, missing evidence, or explicit requests.
-- **Agent Handoff** — structured revisions, authoritative inputs, scope, freeze integrity, validation, blockers, and next stage. In orchestrated mode it is normally consumed internally by the coordinator.
-
-Routine successful stage completion does not produce a Human Brief in orchestrated mode. The objective is not minimum words; it is minimum human interruption consistent with correct judgment.
-
-## Prompt composition
-
-Prompt generation is currently a composition practice, not an automation subsystem:
-
-```text
-current intent
-+ canonical stage contract
-+ repository truth
-+ Task Packet / freeze context
-        ↓
-execution prompt
-```
-
-Open-ended discussion remains appropriate while uncertainty is the work. Once intent is stable, repeated Test, Coding, CR, Integration, and Final CR work should use standardized launch prompts.
-
-> Explore with Discussion; execute with standardized prompts.
-
-## Engineering baseline
-
-[`docs/standards/`](docs/standards/) contains language/framework-independent engineering invariants: ownership, module boundaries, dependency direction, justified abstraction, implementation quality, and explicit failure semantics. It does not prescribe one universal directory layout or replace project-local architecture.
-
-## Runtime-native orchestration
-
-Stage boundaries are authority boundaries, not mandatory user-managed chat boundaries.
-
-When the runtime provides isolated sub-agents/threads, a coordinator should keep moving through applicable stages without asking the human to launch each one. Only independent Test tasks enter Test and may be batched with per-task freeze evidence. Coding and Module CR must use separate reasoning contexts so review does not inherit the implementation agent's reasoning transcript.
-
-For Coding, the coordinator computes a `READY_SET`. If two or more READY tasks are independent and runtime-native worktrees are available, parallel worktree fan-out is the default. Tasks are serialized only for dependency, overlapping write scope, required shared uncommitted state, shared global-resource conflict, insufficient isolation, or runtime/resource limits.
-
-Reasoning/context isolation and filesystem/worktree isolation remain independent. A fresh sub-agent may safely use the shared workspace when work is serialized and required state is uncommitted; worktrees provide filesystem isolation for safe concurrent writers.
-
-The coordinator returns control only for `COMPLETED`, `HUMAN_DECISION_REQUIRED`, `FREEZE_BREAK_REQUIRED`, `BLOCKED`, `DELEGATION_UNAVAILABLE`, or `FINAL_ACCEPTANCE_REQUIRED` (including focused acceptance at meaningful user-visible module boundaries). If the runtime cannot delegate safely, the protocol falls back to a structured handoff and ready-to-paste next-stage prompt.
-
-## Current non-goals
-
-The current version does not require building a custom:
-
-- DAG engine;
-- CLI;
-- queue or scheduler;
-- worktree manager;
-- agent RPC layer;
-- persistent orchestration database;
-- large Prompt Compiler;
-- automatic dispatch system.
-
-Use runtime-native orchestration capabilities when they already exist. Add custom infrastructure only when real project evidence shows native/manual execution is the bottleneck.
-
-## Validation focus
-
-The current version succeeds if real projects show that:
-
-1. a fresh agent can route a task from Skill + repository truth;
-2. stage authority prevents silent upstream rewriting;
-3. freeze revisions are actually verifiable;
-4. independent TEST FREEZE blocks test weakening and non-discriminating test contracts without imposing that cost on routine tasks;
-5. Task Packets survive fresh execution-context handoff without hidden context;
-6. Human Brief reduces reading without hiding material decisions;
-7. runtime-native continuation removes routine human orchestration without weakening stage isolation;
-8. independent READY tasks actually execute concurrently when safe instead of being unnecessarily serialized;
-9. parallel worktree results integrate without hidden semantic conflict or excessive merge/rework cost;
-10. repeated CR/rework decreases;
-11. lightweight/inline routes reduce execution and token cost without increasing material escaped defects;
-12. focused acceptance catches business failures not proven by green tests;
-13. the process remains light enough to use routinely.
-
-The next useful work is therefore empirical validation on real repositories, not more orchestration infrastructure.
+The goal is **less rework and fewer missed architectural regressions**, not more process for small changes.
