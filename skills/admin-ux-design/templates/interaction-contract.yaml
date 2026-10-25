@@ -1,0 +1,61 @@
+# Authoring aid, not runtime configuration or a mandatory schema.
+# Replace placeholders; reference existing business rules instead of duplicating them.
+# Omit irrelevant sections. Never set approved without actual scoped approval.
+contract_id: REPLACE_WITH_FLOW_ID
+design_revision: draft-1
+status: draft
+business_refs: []
+task: REPLACE_WITH_OPERATOR_TASK
+non_goals: []
+approved_decisions_to_preserve: []
+
+view_intent:
+  hierarchy: REPLACE_WITH_ESSENTIAL_GROUPING
+  interaction_container: REPLACE_WITH_CHOICE_AND_REASON
+  visual_refs: []
+
+interactions:
+  - id: REPLACE_WITH_STABLE_INTERACTION_ID
+    trigger: REPLACE_WITH_USER_ACTION
+    availability: REFERENCE_EXISTING_BUSINESS_RULES_AND_UI_CONDITIONS
+    pending:
+      feedback: REPLACE_WITH_OBSERVABLE_BEHAVIOR
+      repeat_submission: REPLACE_WITH_BEHAVIOR
+      exit: REPLACE_WITH_EXIT_SEMANTICS
+    success:
+      feedback: REPLACE_WITH_ACTUAL_RESULT
+      update: REPLACE_WITH_AFFECTED_VIEW
+      preserve: []
+      reset: []
+    failure:
+      feedback: REPLACE_WITH_ERROR_LOCATION_AND_RECOVERY
+      preserve: []
+    cancel: REPLACE_WITH_LOCAL_CANCEL_BEHAVIOR
+    focus: REPLACE_WITH_RELEVANT_FOCUS_BEHAVIOR
+
+questions:
+  # Each item: id, kind (business/technical), question, affects, owner,
+  # blocks (affected approval/implementation scope); do not guess answers.
+  business: []
+  technical: []
+
+prototype:
+  artifact: null
+  design_revision: draft-1
+  production_authority: false
+  simulated: []
+  not_demonstrated: []
+  launch: null
+
+acceptance:
+  # Each item links an interaction ID to actions and observable expectations.
+  - interaction: REPLACE_WITH_STABLE_INTERACTION_ID
+    given: REPLACE_WITH_START_STATE
+    when: REPLACE_WITH_ACTION_SEQUENCE
+    then: REPLACE_WITH_OBSERVABLE_RESULT
+
+approval:
+  evidence: null
+  scope: []
+  # Actual Git revision is recorded in the host handoff after commit.
+  # A field here does not establish a freeze or approve hidden mock behavior.

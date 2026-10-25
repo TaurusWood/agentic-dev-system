@@ -8,7 +8,7 @@ The current objective is deliberately small: make that workflow explicit, runnab
 
 ## Install
 
-The runnable distribution is the `agentic-development` Skill under [`skills/agentic-development/`](skills/agentic-development/).
+The core workflow distribution is the `agentic-development` Skill under [`skills/agentic-development/`](skills/agentic-development/).
 
 For an individual developer using Codex across multiple repositories, install **one global copy**:
 
@@ -20,6 +20,18 @@ npx skills update agentic-development --global
 Use additional `--agent` selectors when the same developer wants to expose the Skill to other supported coding agents. A project-local installation remains valid when a team deliberately versions and shares it, but avoid keeping an obsolete project copy with the same name alongside a global installation. Do not delete other project-specific Skills.
 
 A manual multi-chat workflow and a runtime with sub-agents use the same Skill contracts. Manual execution remains supported, but when isolated runtime-native delegation is available the default is automatic continuation across routine stages rather than asking the human to open each next chat.
+
+## Admin UX companion
+
+[`admin-ux-design`](skills/admin-ux-design/SKILL.md) is an optional, independently installable Skill for admin systems, internal tools, and operational consoles. It provides eight practical principles, six interaction patterns, and a lightweight prototype/interaction-contract handoff. It is stack-independent and does not introduce a CRUD framework, an audit phase, or a new freeze.
+
+```bash
+npx skills add https://github.com/TaurusWood/agentic-dev-system --skill admin-ux-design --global --agent codex --yes
+```
+
+Use it to improve a known admin task, try an isolated prototype, and record the approved interaction decisions. Formal implementation consumes those decisions plus Technical Design; disposable prototype code and mock data are not production authority. It can also help apply an already approved design without redesigning it.
+
+Start with the [Chinese usage guide](docs/guides/admin-ux-design.zh-CN.md). Package validation and behavioral evaluation limits are documented there. `agentic-development` continues to own workflow semantics; the companion is not required for non-admin work.
 
 ## Web Chat Discussion Layer
 

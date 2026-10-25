@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "purpose": "Behavioral evaluation prompts; not automatically executed by the package checker.",
+  "cases": [
+    {
+      "id": "scope",
+      "prompt": "Design a public marketing landing page with expressive animation.",
+      "expected": [
+        "Recognize this is outside admin-ux-design scope; do not force admin patterns."
+      ],
+      "must_not": [
+        "Generate an admin table or load all admin patterns."
+      ]
+    },
+    {
+      "id": "preserve-approved-bar",
+      "prompt": "An approved admin screen has a bottom floating batch bar. Improve selection clarity.",
+      "expected": [
+        "Preserve bar location.",
+        "Specify count/scope and check obstruction/focus."
+      ],
+      "must_not": [
+        "Move the bar to the top solely because Carbon does so."
+      ]
+    },
+    {
+      "id": "unknown-api",
+      "prompt": "Only a business flow and a disposable HTML demo exist. Implement the React page.",
+      "expected": [
+        "Read real project contracts and identify missing API/data design.",
+        "Treat prototype internals as non-authoritative; defer affected integration."
+      ],
+      "must_not": [
+        "Convert the demo array shape into an API contract.",
+        "Import prototype code into production."
+      ]
+    },
+    {
+      "id": "defined-api-mock",
+      "prompt": "The save API contract is approved; backend implementation is pending.",
+      "expected": [
+        "Allow formal frontend development with contract-conforming isolated mocks.",
+        "Do not silently fall back to mocks in production."
+      ],
+      "must_not": [
+        "Block all frontend work merely because data is mocked."
+      ]
+    },
+    {
+      "id": "field-count",
+      "prompt": "A two-field edit requires document comparison and a long calculation.",
+      "expected": [
+        "Choose the container from task complexity and context.",
+        "Do not use a numeric field-count rule."
+      ],
+      "must_not": [
+        "Always choose a drawer because there are fewer than seven fields."
+      ]
+    },
+    {
+      "id": "bulk-ambiguity",
+      "prompt": "Add bulk edit; selected records have mixed values and mixed eligibility.",
+      "expected": [
+        "Separate keep/set/clear intent.",
+        "Surface unresolved eligibility and result semantics as material questions."
+      ],
+      "must_not": [
+        "Treat blank input as clear-all.",
+        "Silently skip ineligible records or invent partial success."
+      ]
+    },
+    {
+      "id": "prototype-contract-conflict",
+      "prompt": "Approved prototype returns to a filtered list; the written contract says reset all filters.",
+      "expected": [
+        "Surface and reconcile conflicting approved artifacts before affected coding."
+      ],
+      "must_not": [
+        "Pick whichever artifact is easier.",
+        "Assume prose or prototype code automatically wins."
+      ]
+    },
+    {
+      "id": "approval-boundary",
+      "prompt": "A user approved the save-success demo; failure and permission behavior were hidden.",
+      "expected": [
+        "Record only actually approved scope.",
+        "Expose consequential undisclosed decisions without claiming full approval."
+      ],
+      "must_not": [
+        "Mark all unseen behavior approved."
+      ]
+    },
+    {
+      "id": "small-fix",
+      "prompt": "An approved admin table truncates a known field incorrectly; the correct behavior is already specified.",
+      "expected": [
+        "Apply the bounded change using existing conventions and focused acceptance."
+      ],
+      "must_not": [
+        "Require a new business YAML, CRUD framework, prototype, UX freeze, or audit phase."
+      ]
+    },
+    {
+      "id": "uncertain-write",
+      "prompt": "A submit request times out after the server may have committed.",
+      "expected": [
+        "Do not claim rollback or success.",
+        "Use or request the actual reconciliation path before repeat writes."
+      ],
+      "must_not": [
+        "Enable blind retry or show an invented undo action."
+      ]
+    },
+    {
+      "id": "source-vs-project",
+      "prompt": "A reference recommends undo, but this product contract forbids recovery of a deletion.",
+      "expected": [
+        "Keep the approved business meaning; choose an appropriate consequential-action safeguard."
+      ],
+      "must_not": [
+        "Add undo solely to satisfy a general heuristic."
+      ]
+    },
+    {
+      "id": "engineering-gap",
+      "prompt": "UX prototype is approved, but permissions and module ownership have not been designed.",
+      "expected": [
+        "Pass the approved UX through existing Technical Design.",
+        "Keep server enforcement and engineering verification responsibilities intact."
+      ],
+      "must_not": [
+        "Claim the UX Skill guarantees production code quality."
+      ]
+    }
+  ]
+}
