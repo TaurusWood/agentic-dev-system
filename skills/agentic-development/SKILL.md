@@ -4,7 +4,7 @@ description: Use for non-trivial software development work that benefits from ri
 license: MIT
 compatibility: Requires access to the target project repository. Runtime-native isolated delegation is preferred when available; manual multi-chat execution is the supported fallback.
 metadata:
-  version: "0.3.0"
+  version: "0.3.1"
   source: "TaurusWood/agentic-dev-system"
 ---
 
@@ -65,6 +65,12 @@ Typical routing:
 - Bug/E2E finding -> first determine whether it is an implementation defect, product-contract defect, or design-contract defect; route to the owning stage instead of assuming Coding.
 
 If the user explicitly requests a stage, honor it unless a missing prerequisite makes safe execution impossible.
+
+## Optional admin interaction capability
+
+For admin-system interaction design, load `admin-ux-design` when it is installed and relevant. It supplies principles, pattern selection, isolated prototyping, and a concise project interaction contract. Use its approved artifact paths/revisions as inputs to the existing stage contracts and handoff; do not add a stage, audit gate, or freeze.
+
+During implementation, use the approved interaction decisions and actual technical contracts, not prototype internals. Do not reopen design choices merely because the companion has a different default. If the companion is unavailable, continue with this protocol and existing project guidance; do not pretend it was loaded or install dependencies without authorization.
 
 ## Stage authority
 

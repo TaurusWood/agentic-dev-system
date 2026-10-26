@@ -84,6 +84,18 @@ then proceed to the next allowed stage.
 
 The repository—not the previous chat—is the source of truth. The Skill checks recorded revisions, dependencies, allowed paths, and applicable test mode before resuming.
 
+## Admin UX companion
+
+[`admin-ux-design`](skills/admin-ux-design/SKILL.md) is an optional, independently installable Skill for admin systems, internal tools, and operational consoles. It provides eight practical principles, six interaction patterns, and a lightweight prototype/interaction-contract handoff. It is stack-independent and does not introduce a CRUD framework, an audit phase, or a new freeze.
+
+```bash
+npx skills add https://github.com/TaurusWood/agentic-dev-system --skill admin-ux-design --global --agent codex --yes
+```
+
+Use it to improve a known admin task, try an isolated prototype, and record the approved interaction decisions. Formal implementation consumes those decisions plus Technical Design; disposable prototype code and mock data are not production authority. It can also help apply an already approved design without redesigning it.
+
+Start with the [Chinese usage guide](docs/guides/admin-ux-design.zh-CN.md). Package validation and behavioral evaluation limits are documented there. `agentic-development` continues to own workflow semantics; the companion is not required for non-admin work.
+
 ## How execution works
 
 ```text
